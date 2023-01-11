@@ -4,6 +4,7 @@ import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
 
 import frc.robot.commands.AlignMotorsCommand;
+import frc.robot.commands.ZeroOutMotorsCommand;
 import frc.robot.subsystems.DriveTrainSubsystem;
 
 public class RobotContainer {
@@ -24,6 +25,9 @@ public class RobotContainer {
     }
 
     private void configureButtonBindings() {
-       joystick2.btn_1.whileTrue(new AlignMotorsCommand(drivetrain));
+       joystick2.btn_1.whileTrue(new AlignMotorsCommand(drivetrain, MIDDLE));
+       joystick2.btn_3.or(joystick2.btn_5).whileTrue(new AlignMotorsCommand(drivetrain, FORWARDS));
+       joystick2.btn_4.or(joystick2.btn_6).whileTrue(new AlignMotorsCommand(drivetrain, SIDEWAYS));
+       joystick2.btn_7.and(joystick2.btn_8).onTrue(new ZeroOutMotorsCommand(drivetrain));
     }
 }

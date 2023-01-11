@@ -1,10 +1,13 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import static frc.robot.Constants.*;
 
 public class SwerveMotorsSubsystem extends SubsystemBase {
     private final WPI_TalonFX wheelMotor;
@@ -16,7 +19,14 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
     }
 
     public void setRotationVoltage(double volts) {
-        directionMotor.setVoltage(volts);
+        double pos = getRotationPosition();
+        if (pos > SWERVE_UNITS_PER_ROTATION / 2 - SWERVE_UNITS_PADDING && volts > 0) {
+            directionMotor.stopMotor();
+        } else if (pos < -SWERVE_UNITS_PER_ROTATION / 2 + SWERVE_UNITS_PADDING && volts < 0) {
+            directionMotor.stopMotor();
+        } else {
+            directionMotor.setVoltage(volts);
+        }
     }
 
     public void stopRotation() {
@@ -44,21 +54,22 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
         wheelMotor.setNeutralMode(NeutralMode.Coast);
         directionMotor.setNeutralMode(NeutralMode.Coast);
     }
+    
+    public void zeroOutRotation() {
+        directionMotor.getSensorCollection().setIntegratedSensorPosition(0, 0);
+    }
 
     public double getRotationPosition() {
         return directionMotor.getSelectedSensorPosition();
     }
 
-    public void zeroOutRotation() {
-        directionMotor.getSensorCollection().setIntegratedSensorPosition(0, 0);
-    }
-
-    public void rotateTowards(double target, double max, double min) {
+    public boolean rotateTowards(double target) {
         double pos = getRotationPosition();
         double dist = target - pos;
-        double percentage = Math.max(Math.min(dist / 2500, 0.7), 0);
+        double percentage = clamp(dist / SWERVE_UNITS_PER_ROTATION * 3, -0.2, 0.2);
 
-        directionMotor.set(ControlMode.PercentOutput, percentage);
+        directionMotor.set(ControlMode.MotionMagic, target, DemandType.ArbitraryFeedForward, percentage);
+        return clamp(percentage, -0.035, 0.035) == percentage;
     }
     
     @Override

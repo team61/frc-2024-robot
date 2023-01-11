@@ -87,7 +87,7 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick2 = robotContainer.joystick2;
 
         double speed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
-        double rotationVoltage = joystick2.getZAxis(0.1) * MAX_ROTATION_VOLTAGE;
+        double rotationVoltage = -joystick2.getZAxis(0.05) * MAX_ROTATION_VOLTAGE;
         
         if (joystick1.btn_2.getAsBoolean()) {
             speed *= SLOWDOWN_COEFFICIENT;

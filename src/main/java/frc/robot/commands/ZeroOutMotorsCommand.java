@@ -3,34 +3,30 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.DriveTrainSubsystem;
 
-public class AlignMotorsCommand extends CommandBase {
+public class ZeroOutMotorsCommand extends CommandBase {
     private final DriveTrainSubsystem drivetrain;
-    private final String direction;
     private boolean finished = false;
 
-    public AlignMotorsCommand(DriveTrainSubsystem dt, String dir) {
+    public ZeroOutMotorsCommand(DriveTrainSubsystem dt) {
         drivetrain = dt;
-        direction = dir;
 
         addRequirements(dt);
     }
 
     @Override
-    public void initialize() {
-        drivetrain.disableBreaks();
-    }
+    public void initialize() {}
 
     @Override
     public void execute() {
-        finished = drivetrain.alignMotors(direction);
+        drivetrain.zeroOutRotation();
 
-        if (finished) {
-            drivetrain.enableBreaks();
-        }
+        end(false);
     }
 
     @Override
-    public void end(boolean interrupted) {}
+    public void end(boolean interrupted) {
+        finished = true;
+    }
 
     @Override
     public boolean isFinished() {
