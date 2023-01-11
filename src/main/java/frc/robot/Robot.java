@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import lib.components.LogitechJoystick;
 
 import static frc.robot.Constants.*;
+import static frc.robot.Globals.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -86,19 +87,31 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick1 = robotContainer.joystick1;
         LogitechJoystick joystick2 = robotContainer.joystick2;
 
-        double speed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
-        double rotationVoltage = -joystick2.getZAxis(0.05) * MAX_ROTATION_VOLTAGE;
-        
-        if (joystick1.btn_2.getAsBoolean()) {
-            speed *= SLOWDOWN_COEFFICIENT;
-        }
+        if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
+            double speed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
+            double rotationVoltage = -joystick2.getZAxis(0.05) * MAX_ROTATION_VOLTAGE;
+            
+            if (joystick1.btn_2.getAsBoolean()) {
+                speed *= SLOWDOWN_COEFFICIENT;
+            }
 
-        if (joystick2.btn_2.getAsBoolean()) {
-            rotationVoltage *= SLOWDOWN_COEFFICIENT;
-        }
+            if (joystick2.btn_2.getAsBoolean()) {
+                rotationVoltage *= SLOWDOWN_COEFFICIENT;
+            }
 
-        robotContainer.drivetrain.driveSpeed(speed);
-        robotContainer.drivetrain.setRotationVoltage(rotationVoltage);
+            robotContainer.drivetrain.driveSpeed(speed);
+            robotContainer.drivetrain.setRotationVoltage(rotationVoltage);
+        } else {
+            double lSpeed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
+            double rSpeed = joystick2.getYAxis() * Math.abs(joystick2.getYAxis());
+
+            if (joystick1.btn_2.getAsBoolean() || joystick2.btn_2.getAsBoolean()) {
+                lSpeed *= SLOWDOWN_COEFFICIENT;
+                rSpeed *= SLOWDOWN_COEFFICIENT;
+            }
+
+            robotContainer.tankdrive.driveSpeed(lSpeed, rSpeed);
+        }
     }
 
     /** This function is called once when the robot is disabled. */

@@ -17,6 +17,9 @@ public final class Constants {
     public static final String SIDEWAYS = "sideways";
     public static final String MIDDLE = "middle";
 
+    public static final String SWERVE_DRIVE = "swervedrive";
+    public static final String TANK_DRIVE = "tankdrive";
+
     public static double clamp(double value, double min, double max) {
         return Math.max(Math.min(value, max), min);
     }
