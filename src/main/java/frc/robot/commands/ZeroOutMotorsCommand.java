@@ -1,16 +1,15 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.DriveTrainSubsystem;
+import frc.robot.subsystems.SwerveDriveSubsystem;
 
 public class ZeroOutMotorsCommand extends CommandBase {
-    private final DriveTrainSubsystem drivetrain;
-    private boolean finished = false;
+    private final SwerveDriveSubsystem swervedrive;
 
-    public ZeroOutMotorsCommand(DriveTrainSubsystem dt) {
-        drivetrain = dt;
+    public ZeroOutMotorsCommand(SwerveDriveSubsystem sd) {
+        swervedrive = sd;
 
-        addRequirements(dt);
+        addRequirements(sd);
     }
 
     @Override
@@ -18,18 +17,14 @@ public class ZeroOutMotorsCommand extends CommandBase {
 
     @Override
     public void execute() {
-        drivetrain.zeroOutRotation();
-
-        end(false);
+        swervedrive.zeroOutRotation();
     }
 
     @Override
-    public void end(boolean interrupted) {
-        finished = true;
-    }
+    public void end(boolean interrupted) {}
 
     @Override
     public boolean isFinished() {
-        return finished;
+        return true;
     }
 }

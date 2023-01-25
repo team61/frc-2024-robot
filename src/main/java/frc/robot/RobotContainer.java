@@ -4,9 +4,12 @@ import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
 
 import frc.robot.commands.AlignMotorsCommand;
+import frc.robot.commands.AutonomousCommand;
 import frc.robot.commands.SetDriveModeCommand;
 import frc.robot.commands.ZeroOutMotorsCommand;
-import frc.robot.subsystems.DriveTrainSubsystem;
+import frc.robot.subsystems.DatabaseSubsystem;
+import frc.robot.subsystems.DriveTrain;
+import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.subsystems.TankDriveSubsystem;
 
 public class RobotContainer {
@@ -15,19 +18,24 @@ public class RobotContainer {
     public final LogitechJoystick joystick3 = new LogitechJoystick(joystickPort3);
     public final LogitechJoystick joystick4 = new LogitechJoystick(joystickPort4);
 
-    public final DriveTrainSubsystem drivetrain = new DriveTrainSubsystem(4, new int[] {
+    private final SwerveDriveSubsystem swervedrive = new SwerveDriveSubsystem(4, new int[] {
             19, 18,
             11, 10,
             9, 8,
             1, 0,
     });
-    public final TankDriveSubsystem tankdrive = new TankDriveSubsystem(2, new int[] {
+    private final TankDriveSubsystem tankdrive = new TankDriveSubsystem(2, new int[] {
             19, 18,
             11, 10,
     }, new int[] {
             9, 8,
             1, 0,
     });
+    private final DriveTrain drivetrain = new DriveTrain(swervedrive, tankdrive);
+
+    private final DatabaseSubsystem db = new DatabaseSubsystem();
+
+    private final AutonomousCommand autoCommand = new AutonomousCommand(swervedrive, tankdrive);
 
     public RobotContainer() {
         configureButtonBindings();
@@ -35,19 +43,31 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
         joystick1.btn_1
-                .onTrue(new SetDriveModeCommand(SWERVE_DRIVE))
-                .onFalse(new SetDriveModeCommand(TANK_DRIVE));
+                .onTrue(new SetDriveModeCommand(drivetrain, SWERVE_DRIVE))
+                .onFalse(new SetDriveModeCommand(drivetrain, TANK_DRIVE));
 
         joystick2.btn_1
-                .whileTrue(new AlignMotorsCommand(drivetrain, MIDDLE));
+                .onTrue(new AlignMotorsCommand(swervedrive, MIDDLE));
         joystick2.btn_3
                 .or(joystick2.btn_5)
-                .whileTrue(new AlignMotorsCommand(drivetrain, FORWARDS));
+                .onTrue(new AlignMotorsCommand(swervedrive, FORWARDS));
         joystick2.btn_4
                 .or(joystick2.btn_6)
-                .whileTrue(new AlignMotorsCommand(drivetrain, SIDEWAYS));
+                .onTrue(new AlignMotorsCommand(swervedrive, SIDEWAYS));
         joystick2.btn_7
                 .and(joystick2.btn_8)
-                .onTrue(new ZeroOutMotorsCommand(drivetrain));
+                .onTrue(new ZeroOutMotorsCommand(swervedrive));
+    }
+
+    public DriveTrain getDriveTrain() {
+        return drivetrain;
+    }
+
+    public DatabaseSubsystem getDatabase() {
+        return db;
+    }
+
+    public AutonomousCommand getAutonomousCommand() {
+        return autoCommand;
     }
 }

@@ -66,10 +66,10 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
     public boolean rotateTowards(double target) {
         double pos = getRotationPosition();
         double dist = target - pos;
-        double percentage = clamp(dist / SWERVE_UNITS_PER_ROTATION * 3, -0.2, 0.2);
+        double percentage = clamp(dist / SWERVE_UNITS_PER_ROTATION * 3, -0.18, 0.18);
 
         directionMotor.set(ControlMode.MotionMagic, target, DemandType.ArbitraryFeedForward, percentage);
-        return clamp(percentage, -0.035, 0.035) == percentage;
+        return clamp(percentage, -0.025, 0.025) == percentage;
     }
     
     @Override

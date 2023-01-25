@@ -1,36 +1,34 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.DriveTrainSubsystem;
+import frc.robot.subsystems.SwerveDriveSubsystem;
 
 public class AlignMotorsCommand extends CommandBase {
-    private final DriveTrainSubsystem drivetrain;
+    private final SwerveDriveSubsystem swervedrive;
     private final String direction;
     private boolean finished = false;
 
-    public AlignMotorsCommand(DriveTrainSubsystem dt, String dir) {
-        drivetrain = dt;
+    public AlignMotorsCommand(SwerveDriveSubsystem sd, String dir) {
+        swervedrive = sd;
         direction = dir;
 
-        addRequirements(dt);
+        addRequirements(sd);
     }
 
     @Override
     public void initialize() {
-        drivetrain.disableBreaks();
+        swervedrive.disableBreaks();
     }
 
     @Override
     public void execute() {
-        finished = drivetrain.alignMotors(direction);
-
-        if (finished) {
-            drivetrain.enableBreaks();
-        }
+        finished = swervedrive.alignMotors(direction);
     }
 
     @Override
-    public void end(boolean interrupted) {}
+    public void end(boolean interrupted) {
+        swervedrive.enableBreaks();
+    }
 
     @Override
     public boolean isFinished() {

@@ -4,10 +4,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.*;
 
-public class DriveTrainSubsystem extends SubsystemBase {
+public class SwerveDriveSubsystem extends SubsystemBase {
     private final SwerveMotorsSubsystem[] swerveMotors;
 
-    public DriveTrainSubsystem(int totalSwerveDriveUnits, int[] ports) {
+    public SwerveDriveSubsystem(int totalSwerveDriveUnits, int[] ports) {
         swerveMotors = new SwerveMotorsSubsystem[totalSwerveDriveUnits];
 
         for (int i = 0; i < totalSwerveDriveUnits; i++) {

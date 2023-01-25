@@ -6,6 +6,9 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.AutonomousCommand;
+import frc.robot.subsystems.DatabaseSubsystem;
+import frc.robot.subsystems.DriveTrain;
 import lib.components.LogitechJoystick;
 
 import static frc.robot.Constants.*;
@@ -22,6 +25,9 @@ import static frc.robot.Globals.*;
  */
 public class Robot extends TimedRobot {
     private RobotContainer robotContainer;
+    private DriveTrain drivetrain;
+    private DatabaseSubsystem db;
+    private AutonomousCommand autoCommand;
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -31,6 +37,9 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         robotContainer = new RobotContainer();
+        drivetrain = robotContainer.getDriveTrain();
+        db = robotContainer.getDatabase();
+        autoCommand = robotContainer.getAutonomousCommand();
     }
 
     /**
@@ -67,7 +76,9 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-        robotContainer.drivetrain.enableBreaks();
+        drivetrain.swervedrive.disableBreaks();
+
+        autoCommand.schedule();
     }
 
     /** This function is called periodically during autonomous. */
@@ -78,7 +89,7 @@ public class Robot extends TimedRobot {
     /** This function is called once when teleop is enabled. */
     @Override
     public void teleopInit() {
-        robotContainer.drivetrain.enableBreaks();
+        drivetrain.swervedrive.enableBreaks();
     }
 
     /** This function is called periodically during operator control. */
@@ -99,8 +110,8 @@ public class Robot extends TimedRobot {
                 rotationVoltage *= SLOWDOWN_COEFFICIENT;
             }
 
-            robotContainer.drivetrain.driveSpeed(speed);
-            robotContainer.drivetrain.setRotationVoltage(rotationVoltage);
+            drivetrain.swervedrive.driveSpeed(speed);
+            drivetrain.swervedrive.setRotationVoltage(rotationVoltage);
         } else {
             double lSpeed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
             double rSpeed = joystick2.getYAxis() * Math.abs(joystick2.getYAxis());
@@ -110,14 +121,21 @@ public class Robot extends TimedRobot {
                 rSpeed *= SLOWDOWN_COEFFICIENT;
             }
 
-            robotContainer.tankdrive.driveSpeed(lSpeed, rSpeed);
+            drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
         }
+
+        System.out.print("tags: ");
+        for (long tag : db.getTags()) {
+            System.out.print(tag + "   ");
+        }
+        
+        System.out.println();
     }
 
     /** This function is called once when the robot is disabled. */
     @Override
     public void disabledInit() {
-        robotContainer.drivetrain.disableBreaks();
+        drivetrain.swervedrive.disableBreaks();
     }
 
     /** This function is called periodically when disabled. */
