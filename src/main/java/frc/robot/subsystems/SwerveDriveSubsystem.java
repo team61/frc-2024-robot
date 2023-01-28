@@ -7,11 +7,11 @@ import static frc.robot.Constants.*;
 public class SwerveDriveSubsystem extends SubsystemBase {
     private final SwerveMotorsSubsystem[] swerveMotors;
 
-    public SwerveDriveSubsystem(int totalSwerveDriveUnits, int[] ports) {
+    public SwerveDriveSubsystem(int totalSwerveDriveUnits, int[] motorPorts, int[] encoderPorts) {
         swerveMotors = new SwerveMotorsSubsystem[totalSwerveDriveUnits];
 
         for (int i = 0; i < totalSwerveDriveUnits; i++) {
-            swerveMotors[i] = new SwerveMotorsSubsystem(ports[i * 2], ports[i * 2 + 1]);
+            swerveMotors[i] = new SwerveMotorsSubsystem(motorPorts[i * 2], motorPorts[i * 2 + 1], encoderPorts[i]);
         }
     }
 
@@ -55,7 +55,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         boolean[] results = new boolean[swerveMotors.length];
         double targetPosition = 0;
         if (direction == SIDEWAYS) {
-            targetPosition += SWERVE_UNITS_PER_ROTATION / 4;
+            targetPosition += ENCODER_UNITS_PER_ROTATION / 4;
         } else if (direction == MIDDLE) {
             for (SwerveMotorsSubsystem swerveUnit : swerveMotors) {
                 targetPosition += swerveUnit.getRotationPosition();

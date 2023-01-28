@@ -14,6 +14,8 @@ import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
 
+import com.ctre.phoenix.sensors.CANCoder;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to
@@ -29,6 +31,8 @@ public class Robot extends TimedRobot {
     private DatabaseSubsystem db;
     private AutonomousCommand autoCommand;
 
+    CANCoder[] encoders;
+
     /**
      * This function is run when the robot is first started up and should be used
      * for any
@@ -40,6 +44,13 @@ public class Robot extends TimedRobot {
         drivetrain = robotContainer.getDriveTrain();
         db = robotContainer.getDatabase();
         autoCommand = robotContainer.getAutonomousCommand();
+
+        encoders = new CANCoder[] {
+            new CANCoder(30),
+            new CANCoder(31),
+            new CANCoder(32),
+            new CANCoder(33),
+        };
     }
 
     /**
@@ -59,7 +70,7 @@ public class Robot extends TimedRobot {
 
     /**
      * This autonomous (along with the chooser code above) shows how to select
-     * between different
+     * between differentd
      * autonomous modes using the dashboard. The sendable chooser code works with
      * the Java
      * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the
@@ -124,12 +135,23 @@ public class Robot extends TimedRobot {
             drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
         }
 
-        System.out.print("tags: ");
-        for (long tag : db.getTags()) {
+        // System.out.print("tags: ");
+        // for (long tag : db.getTags()) {
+        //     System.out.print(tag + "   ");
+        // }
+        // System.out.println();
+        
+        System.out.print("cone: ");
+        for (long tag : db.getConePos()) {
             System.out.print(tag + "   ");
         }
-        
         System.out.println();
+
+        // System.out.print("encoders: ");
+        // for (CANCoder encoder : encoders) {
+        //     System.out.print(encoder.getPosition() + "   ");
+        // }
+        // System.out.println();
     }
 
     /** This function is called once when the robot is disabled. */

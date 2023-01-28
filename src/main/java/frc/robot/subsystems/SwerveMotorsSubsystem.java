@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.sensors.CANCoder;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -12,6 +13,13 @@ import static frc.robot.Constants.*;
 public class SwerveMotorsSubsystem extends SubsystemBase {
     private final WPI_TalonFX wheelMotor;
     private final WPI_TalonFX directionMotor;
+    private CANCoder encoder;
+
+    public SwerveMotorsSubsystem(int wheelMotorPort, int directionMotorPort, int encoderID) {
+        wheelMotor = new WPI_TalonFX(wheelMotorPort);
+        directionMotor = new WPI_TalonFX(directionMotorPort);
+        encoder = new CANCoder(encoderID);
+    }
 
     public SwerveMotorsSubsystem(int wheelMotorPort, int directionMotorPort) {
         wheelMotor = new WPI_TalonFX(wheelMotorPort);
@@ -20,9 +28,9 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
 
     public void setRotationVoltage(double volts) {
         double pos = getRotationPosition();
-        if (pos > SWERVE_UNITS_PER_ROTATION / 2 - SWERVE_UNITS_PADDING && volts > 0) {
+        if (pos > ENCODER_UNITS_PER_ROTATION / 2 - OVER_ROTATION_PADDING && volts > 0) {
             directionMotor.stopMotor();
-        } else if (pos < -SWERVE_UNITS_PER_ROTATION / 2 + SWERVE_UNITS_PADDING && volts < 0) {
+        } else if (pos < -ENCODER_UNITS_PER_ROTATION / 2 + OVER_ROTATION_PADDING && volts < 0) {
             directionMotor.stopMotor();
         } else {
             directionMotor.setVoltage(volts);
@@ -56,20 +64,25 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
     }
     
     public void zeroOutRotation() {
-        directionMotor.getSensorCollection().setIntegratedSensorPosition(0, 0);
+        if (encoder != null) {
+            encoder.setPosition(0);
+        }
     }
 
     public double getRotationPosition() {
-        return directionMotor.getSelectedSensorPosition();
+        if (encoder == null) return -Double.NEGATIVE_INFINITY;
+        return encoder.getPosition();
     }
 
     public boolean rotateTowards(double target) {
         double pos = getRotationPosition();
         double dist = target - pos;
-        double percentage = clamp(dist / SWERVE_UNITS_PER_ROTATION * 3, -0.18, 0.18);
+        double percentage = clamp(dist / ENCODER_UNITS_PER_ROTATION * 2, -0.3, 0.3);
 
         directionMotor.set(ControlMode.MotionMagic, target, DemandType.ArbitraryFeedForward, percentage);
-        return clamp(percentage, -0.025, 0.025) == percentage;
+
+        double errorDegrees = Math.abs(getRotationPosition() - target);
+        return errorDegrees <= PRECISION_ROTATION_PADDING;
     }
     
     @Override

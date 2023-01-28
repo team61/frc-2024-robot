@@ -23,6 +23,11 @@ public class RobotContainer {
             11, 10,
             9, 8,
             1, 0,
+    }, new int[] {
+            33,
+            30,
+            31,
+            32,
     });
     private final TankDriveSubsystem tankdrive = new TankDriveSubsystem(2, new int[] {
             19, 18,
