@@ -3,12 +3,14 @@ package frc.robot;
 import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
 
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.AlignMotorsCommand;
 import frc.robot.commands.AutonomousCommand;
 import frc.robot.commands.SetDriveModeCommand;
 import frc.robot.commands.ZeroOutMotorsCommand;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
+import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.subsystems.TankDriveSubsystem;
 
@@ -24,23 +26,24 @@ public class RobotContainer {
             9, 8,
             1, 0,
     }, new int[] {
-            33,
             30,
             31,
             32,
+            33,
     });
     private final TankDriveSubsystem tankdrive = new TankDriveSubsystem(2, new int[] {
-            19, 18,
-            11, 10,
-    }, new int[] {
-            9, 8,
             1, 0,
+            9, 8,
+    }, new int[] {
+            11, 10,
+            19, 18,
     });
     private final DriveTrain drivetrain = new DriveTrain(swervedrive, tankdrive);
+    private final ElevatorSubsystem elevator = new ElevatorSubsystem(2);
 
     private final DatabaseSubsystem db = new DatabaseSubsystem();
 
-    private final AutonomousCommand autoCommand = new AutonomousCommand(swervedrive, tankdrive);
+    private final AutonomousCommand autoCommand = new AutonomousCommand(drivetrain, db);
 
     public RobotContainer() {
         configureButtonBindings();
@@ -68,11 +71,15 @@ public class RobotContainer {
         return drivetrain;
     }
 
+    public ElevatorSubsystem getElevator() {
+        return elevator;
+    }
+
     public DatabaseSubsystem getDatabase() {
         return db;
     }
 
-    public AutonomousCommand getAutonomousCommand() {
-        return autoCommand;
+    public SequentialCommandGroup getAutonomousCommand() {
+        return autoCommand.andThen(new AlignMotorsCommand(swervedrive, FORWARDS, 2000));
     }
 }

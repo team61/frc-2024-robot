@@ -6,8 +6,12 @@ public final class Constants {
     public static final int joystickPort3 = 2;
     public static final int joystickPort4 = 0;
 
+    public static final int CAMERA_WIDTH = 640;
+    public static final int CAMERA_HEIGHT = 480;
+
     public static final double MAX_ROTATION_VOLTAGE = 1.5;
     public static final double MAX_DRIVE_VOLTAGE = 12;
+    public static final double MAX_ELEVATOR_VOLTAGE = 2;
     public static final double SLOWDOWN_COEFFICIENT = 0.5;
 
     public static final double ENCODER_UNITS_PER_ROTATION = 360;

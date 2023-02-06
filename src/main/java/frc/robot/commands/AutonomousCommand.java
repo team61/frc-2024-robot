@@ -1,18 +1,21 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.SwerveDriveSubsystem;
-import frc.robot.subsystems.TankDriveSubsystem;
+import frc.robot.subsystems.DatabaseSubsystem;
+import frc.robot.subsystems.DriveTrain;
+
+import static frc.robot.Constants.*;
 
 public class AutonomousCommand extends CommandBase {
-    private final SwerveDriveSubsystem swervedrive;
-    private final TankDriveSubsystem tankdrive;
+    private final DriveTrain drivetrain;
+    private final DatabaseSubsystem db;
+    private boolean finished = false;
 
-    public AutonomousCommand(SwerveDriveSubsystem sd, TankDriveSubsystem td) {
-        swervedrive = sd;
-        tankdrive = td;
+    public AutonomousCommand(DriveTrain dt, DatabaseSubsystem dbs) {
+        drivetrain = dt;
+        db = dbs;
 
-        addRequirements(sd, td);
+        addRequirements(dt, dbs);
     }
 
     @Override
@@ -20,18 +23,26 @@ public class AutonomousCommand extends CommandBase {
 
     @Override
     public void execute() {
-        new Thread(() -> {
-            try {
-                tankdrive.driveVolts(4, 4);
-                Thread.sleep(2000);
-                tankdrive.stop();
-                swervedrive.setRotationVoltage(1);
-                Thread.sleep(1000);
-                swervedrive.setRotationVoltage(0);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
+        long[] conePos = db.getConePos();
+        if (conePos[0] == -1 || conePos[1] == -1) return;
+
+        if (conePos[1] > 50) {
+            drivetrain.swervedrive.driveVolts(2);
+        } else {
+            drivetrain.swervedrive.driveVolts(0);
+        }
+
+        if (conePos[0] > CAMERA_WIDTH / 2 - 40) {
+            drivetrain.swervedrive.setRotationVoltage(0.5);
+        } else if (conePos[0] < CAMERA_WIDTH / 2 + 40) {
+            drivetrain.swervedrive.setRotationVoltage(-0.5);
+        } else {
+            drivetrain.swervedrive.setRotationVoltage(0);
+        }
+
+        if (Math.abs(conePos[0] - CAMERA_WIDTH / 2) < 40 && conePos[1] <= 50) {
+            finished = true;
+        }
     }
 
     @Override
@@ -39,6 +50,6 @@ public class AutonomousCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return true;
+        return finished;
     }
 }

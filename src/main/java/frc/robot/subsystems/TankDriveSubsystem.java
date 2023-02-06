@@ -6,16 +6,16 @@ public class TankDriveSubsystem extends SubsystemBase {
     private final SwerveMotorsSubsystem[] driveLeft;
     private final SwerveMotorsSubsystem[] driveRight;
 
-    public TankDriveSubsystem(int unitsPerSide, int[] leftPorts, int[] rightPorts) {
+    public TankDriveSubsystem(int unitsPerSide, int[] leftIDs, int[] rightIDs) {
         driveLeft = new SwerveMotorsSubsystem[unitsPerSide];
         driveRight = new SwerveMotorsSubsystem[unitsPerSide];
 
         for (int i = 0; i < driveLeft.length; i++) {
-            driveLeft[i] = new SwerveMotorsSubsystem(leftPorts[i * 2], leftPorts[i * 2 + 1]);
+            driveLeft[i] = new SwerveMotorsSubsystem(leftIDs[i * 2], leftIDs[i * 2 + 1]);
         }
 
         for (int i = 0; i < driveRight.length; i++) {
-            driveRight[i] = new SwerveMotorsSubsystem(rightPorts[i * 2], rightPorts[i * 2 + 1]);
+            driveRight[i] = new SwerveMotorsSubsystem(rightIDs[i * 2], rightIDs[i * 2 + 1]);
         }
     }
 

@@ -6,9 +6,10 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.commands.AutonomousCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
+import frc.robot.subsystems.ElevatorSubsystem;
 import lib.components.LogitechJoystick;
 
 import static frc.robot.Constants.*;
@@ -28,8 +29,9 @@ import com.ctre.phoenix.sensors.CANCoder;
 public class Robot extends TimedRobot {
     private RobotContainer robotContainer;
     private DriveTrain drivetrain;
+    private ElevatorSubsystem elevator;
     private DatabaseSubsystem db;
-    private AutonomousCommand autoCommand;
+    private SequentialCommandGroup autoCommand;
 
     CANCoder[] encoders;
 
@@ -42,6 +44,7 @@ public class Robot extends TimedRobot {
     public void robotInit() {
         robotContainer = new RobotContainer();
         drivetrain = robotContainer.getDriveTrain();
+        elevator = robotContainer.getElevator();
         db = robotContainer.getDatabase();
         autoCommand = robotContainer.getAutonomousCommand();
 
@@ -108,6 +111,7 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {
         LogitechJoystick joystick1 = robotContainer.joystick1;
         LogitechJoystick joystick2 = robotContainer.joystick2;
+        LogitechJoystick joystick3 = robotContainer.joystick3;
 
         if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
             double speed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
@@ -134,6 +138,9 @@ public class Robot extends TimedRobot {
 
             drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
         }
+
+        double elevatorSpeed = joystick3.getYAxis() * Math.abs(joystick3.getYAxis());
+        elevator.setVoltage(elevatorSpeed * MAX_ELEVATOR_VOLTAGE);
 
         // System.out.print("tags: ");
         // for (long tag : db.getTags()) {

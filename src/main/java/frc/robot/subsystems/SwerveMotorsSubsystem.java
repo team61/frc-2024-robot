@@ -15,15 +15,15 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
     private final WPI_TalonFX directionMotor;
     private CANCoder encoder;
 
-    public SwerveMotorsSubsystem(int wheelMotorPort, int directionMotorPort, int encoderID) {
-        wheelMotor = new WPI_TalonFX(wheelMotorPort);
-        directionMotor = new WPI_TalonFX(directionMotorPort);
+    public SwerveMotorsSubsystem(int wheelMotorID, int directionMotorID, int encoderID) {
+        wheelMotor = new WPI_TalonFX(wheelMotorID);
+        directionMotor = new WPI_TalonFX(directionMotorID);
         encoder = new CANCoder(encoderID);
     }
 
-    public SwerveMotorsSubsystem(int wheelMotorPort, int directionMotorPort) {
-        wheelMotor = new WPI_TalonFX(wheelMotorPort);
-        directionMotor = new WPI_TalonFX(directionMotorPort);
+    public SwerveMotorsSubsystem(int wheelMotorID, int directionMotorID) {
+        wheelMotor = new WPI_TalonFX(wheelMotorID);
+        directionMotor = new WPI_TalonFX(directionMotorID);
     }
 
     public void setRotationVoltage(double volts) {
@@ -77,7 +77,7 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
     public boolean rotateTowards(double target) {
         double pos = getRotationPosition();
         double dist = target - pos;
-        double percentage = clamp(dist / ENCODER_UNITS_PER_ROTATION * 2, -0.3, 0.3);
+        double percentage = clamp(dist / ENCODER_UNITS_PER_ROTATION * 2, -0.25, 0.25);
 
         directionMotor.set(ControlMode.MotionMagic, target, DemandType.ArbitraryFeedForward, percentage);
 

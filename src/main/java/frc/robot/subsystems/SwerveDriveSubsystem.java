@@ -7,11 +7,11 @@ import static frc.robot.Constants.*;
 public class SwerveDriveSubsystem extends SubsystemBase {
     private final SwerveMotorsSubsystem[] swerveMotors;
 
-    public SwerveDriveSubsystem(int totalSwerveDriveUnits, int[] motorPorts, int[] encoderPorts) {
+    public SwerveDriveSubsystem(int totalSwerveDriveUnits, int[] motorIDs, int[] encoderIDs) {
         swerveMotors = new SwerveMotorsSubsystem[totalSwerveDriveUnits];
 
         for (int i = 0; i < totalSwerveDriveUnits; i++) {
-            swerveMotors[i] = new SwerveMotorsSubsystem(motorPorts[i * 2], motorPorts[i * 2 + 1], encoderPorts[i]);
+            swerveMotors[i] = new SwerveMotorsSubsystem(motorIDs[i * 2], motorIDs[i * 2 + 1], encoderIDs[i]);
         }
     }
 

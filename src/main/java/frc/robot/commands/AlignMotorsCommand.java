@@ -6,12 +6,22 @@ import frc.robot.subsystems.SwerveDriveSubsystem;
 public class AlignMotorsCommand extends CommandBase {
     private final SwerveDriveSubsystem swervedrive;
     private final String direction;
+    private final int maxTime;
     private long startTime;
     private boolean finished = false;
+
+    public AlignMotorsCommand(SwerveDriveSubsystem sd, String dir, int maxMillis) {
+        swervedrive = sd;
+        direction = dir;
+        maxTime = maxMillis;
+        
+        addRequirements(sd);
+    }
 
     public AlignMotorsCommand(SwerveDriveSubsystem sd, String dir) {
         swervedrive = sd;
         direction = dir;
+        maxTime = 500;
         
         addRequirements(sd);
     }
@@ -35,6 +45,6 @@ public class AlignMotorsCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return finished || (System.currentTimeMillis() - startTime > 500);
+        return finished || (System.currentTimeMillis() - startTime > maxTime);
     }
 }
