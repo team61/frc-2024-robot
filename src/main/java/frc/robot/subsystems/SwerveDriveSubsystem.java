@@ -15,6 +15,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         }
     }
 
+    public void rotateIndividualWheel(int index, double volts) {
+        swerveMotors[index].setRotationVoltageNoRestraint(volts);
+    }
+
     public void setRotationVoltage(double volts) {
         for (SwerveMotorsSubsystem swerveUnit : swerveMotors) {
             swerveUnit.setRotationVoltage(volts);
@@ -76,7 +80,4 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {}
-
-    @Override
-    public void simulationPeriodic() {}
 }

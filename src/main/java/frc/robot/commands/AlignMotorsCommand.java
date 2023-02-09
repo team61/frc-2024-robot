@@ -3,6 +3,9 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 
+import static frc.robot.Constants.*;
+import static frc.robot.Globals.*;
+
 public class AlignMotorsCommand extends CommandBase {
     private final SwerveDriveSubsystem swervedrive;
     private final String direction;
@@ -45,6 +48,9 @@ public class AlignMotorsCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return finished || (System.currentTimeMillis() - startTime > maxTime);
+        if (CURRENT_DRIVE_MODE == TANK_DRIVE) return false;
+        
+        boolean hasMaxTimePassed = System.currentTimeMillis() - startTime > maxTime;
+        return finished || hasMaxTimePassed;
     }
 }

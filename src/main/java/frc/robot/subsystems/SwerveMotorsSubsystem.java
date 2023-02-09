@@ -9,6 +9,7 @@ import com.ctre.phoenix.sensors.CANCoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.*;
+import static frc.robot.Globals.*;
 
 public class SwerveMotorsSubsystem extends SubsystemBase {
     private final WPI_TalonFX wheelMotor;
@@ -24,6 +25,10 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
     public SwerveMotorsSubsystem(int wheelMotorID, int directionMotorID) {
         wheelMotor = new WPI_TalonFX(wheelMotorID);
         directionMotor = new WPI_TalonFX(directionMotorID);
+    }
+
+    public void setRotationVoltageNoRestraint(double volts) {
+        directionMotor.setVoltage(volts);
     }
 
     public void setRotationVoltage(double volts) {
@@ -78,16 +83,21 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
         double pos = getRotationPosition();
         double dist = target - pos;
         double percentage = clamp(dist / ENCODER_UNITS_PER_ROTATION * 2, -0.25, 0.25);
-
-        directionMotor.set(ControlMode.MotionMagic, target, DemandType.ArbitraryFeedForward, percentage);
+        if (Math.abs(percentage) <= 0.015) {
+            percentage = Math.signum(percentage) * 0.015;
+        }
 
         double errorDegrees = Math.abs(getRotationPosition() - target);
-        return errorDegrees <= PRECISION_ROTATION_PADDING;
+        boolean isWithinAllowedError = errorDegrees <= PRECISION_ROTATION_PADDING;
+
+        if (!isWithinAllowedError) {
+            directionMotor.set(ControlMode.MotionMagic, target, DemandType.ArbitraryFeedForward, percentage);
+            System.out.println("adjust");
+        }
+
+        return isWithinAllowedError;
     }
     
     @Override
     public void periodic() {}
-
-    @Override
-    public void simulationPeriodic() {}
 }

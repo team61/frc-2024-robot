@@ -26,6 +26,4 @@ public class DatabaseSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {}
-
-    @Override public void simulationPeriodic() {}
 }

@@ -7,6 +7,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.commands.SetDriveModeCommand;
+import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
@@ -16,6 +18,7 @@ import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
 
 import com.ctre.phoenix.sensors.CANCoder;
+import com.kauailabs.navx.frc.AHRS;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -30,6 +33,8 @@ public class Robot extends TimedRobot {
     private RobotContainer robotContainer;
     private DriveTrain drivetrain;
     private ElevatorSubsystem elevator;
+    private ArmSubsystem arm;
+    private AHRS gyro;
     private DatabaseSubsystem db;
     private SequentialCommandGroup autoCommand;
 
@@ -45,6 +50,8 @@ public class Robot extends TimedRobot {
         robotContainer = new RobotContainer();
         drivetrain = robotContainer.getDriveTrain();
         elevator = robotContainer.getElevator();
+        arm = robotContainer.getArm();
+        gyro = robotContainer.getGyro();
         db = robotContainer.getDatabase();
         autoCommand = robotContainer.getAutonomousCommand();
 
@@ -104,6 +111,8 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         drivetrain.swervedrive.enableBreaks();
+        elevator.enableBreaks();
+        robotContainer.pneumaticHub.disableCompressor();
     }
 
     /** This function is called periodically during operator control. */
@@ -112,6 +121,7 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick1 = robotContainer.joystick1;
         LogitechJoystick joystick2 = robotContainer.joystick2;
         LogitechJoystick joystick3 = robotContainer.joystick3;
+        LogitechJoystick joystick4 = robotContainer.joystick4;
 
         if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
             double speed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
@@ -139,8 +149,22 @@ public class Robot extends TimedRobot {
             drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
         }
 
-        double elevatorSpeed = joystick3.getYAxis() * Math.abs(joystick3.getYAxis());
-        elevator.setVoltage(elevatorSpeed * MAX_ELEVATOR_VOLTAGE);
+        double elevatorSpeed = joystick3.getYAxis(0.05);
+        double elevatorVoltage = elevatorSpeed * MAX_ELEVATOR_VOLTAGE;
+        if (elevatorSpeed > 0) {
+            elevatorVoltage = Math.max(elevatorVoltage, MIN_ELEVATOR_VOLTAGE);
+        }
+        if (elevatorVoltage < 0) {
+            elevatorVoltage = clamp(elevatorVoltage, ELEVATOR_NEGATIVE_LIMIT, 0);
+        }
+        elevator.setVoltage(elevatorVoltage);
+
+        double armSpeed = joystick4.getYAxis(0.05);
+        double armVoltage = armSpeed * MAX_ARM_VOLTAGE;
+        if (Math.abs(armSpeed) > 0) {
+            armVoltage += Math.signum(armSpeed) * MIN_ARM_VOLTAGE;
+        }
+        arm.setVoltage(armVoltage);
 
         // System.out.print("tags: ");
         // for (long tag : db.getTags()) {
@@ -148,11 +172,11 @@ public class Robot extends TimedRobot {
         // }
         // System.out.println();
         
-        System.out.print("cone: ");
-        for (long tag : db.getConePos()) {
-            System.out.print(tag + "   ");
-        }
-        System.out.println();
+        // System.out.print("cone: ");
+        // for (long tag : db.getConePos()) {
+        //     System.out.print(tag + "   ");
+        // }
+        // System.out.println();
 
         // System.out.print("encoders: ");
         // for (CANCoder encoder : encoders) {
@@ -165,11 +189,19 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledInit() {
         drivetrain.swervedrive.disableBreaks();
+        elevator.disableBreaks();
     }
 
     /** This function is called periodically when disabled. */
     @Override
     public void disabledPeriodic() {
+        System.out.print(gyro.getAngle() + "   ");
+        System.out.print(gyro.getRate() + "   ");
+        System.out.print(gyro.getRoll() + "   ");
+        System.out.print(gyro.getPitch() + "   ");
+        System.out.print(gyro.getYaw() + "   ");
+        System.out.print(gyro.getCompassHeading() + "   ");
+        System.out.println();
     }
 
     /** This function is called once when test mode is enabled. */

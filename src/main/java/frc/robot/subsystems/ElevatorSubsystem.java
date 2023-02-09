@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -15,9 +16,14 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorMotor.setVoltage(volts);
     }
 
-    @Override
-    public void periodic() {}
+    public void enableBreaks() {
+        elevatorMotor.setNeutralMode(NeutralMode.Brake);
+    }
+
+    public void disableBreaks() {
+        elevatorMotor.setNeutralMode(NeutralMode.Coast);
+    }
 
     @Override
-    public void simulationPeriodic() {}
+    public void periodic() {}
 }

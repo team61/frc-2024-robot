@@ -11,12 +11,16 @@ public final class Constants {
 
     public static final double MAX_ROTATION_VOLTAGE = 1.5;
     public static final double MAX_DRIVE_VOLTAGE = 12;
-    public static final double MAX_ELEVATOR_VOLTAGE = 2;
+    public static final double MIN_ELEVATOR_VOLTAGE = 6;
+    public static final double MAX_ELEVATOR_VOLTAGE = 12;
+    public static final double ELEVATOR_NEGATIVE_LIMIT = -3;
+    public static final double MIN_ARM_VOLTAGE = 0.5;
+    public static final double MAX_ARM_VOLTAGE = 4;
     public static final double SLOWDOWN_COEFFICIENT = 0.5;
 
     public static final double ENCODER_UNITS_PER_ROTATION = 360;
     public static final double OVER_ROTATION_PADDING = 0.25;
-    public static final double PRECISION_ROTATION_PADDING = 8;
+    public static final double PRECISION_ROTATION_PADDING = 6;
 
     public static final String FORWARDS = "forwards";
     public static final String SIDEWAYS = "sideways";

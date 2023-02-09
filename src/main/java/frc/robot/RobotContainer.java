@@ -3,11 +3,17 @@ package frc.robot;
 import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
 
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.wpilibj.PneumaticHub;
+import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.AlignMotorsCommand;
 import frc.robot.commands.AutonomousCommand;
+import frc.robot.commands.IndividualWheelRotationCommand;
 import frc.robot.commands.SetDriveModeCommand;
 import frc.robot.commands.ZeroOutMotorsCommand;
+import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
@@ -32,14 +38,18 @@ public class RobotContainer {
             33,
     });
     private final TankDriveSubsystem tankdrive = new TankDriveSubsystem(2, new int[] {
+        11, 10,
+        19, 18,
+    }, new int[] {
             1, 0,
             9, 8,
-    }, new int[] {
-            11, 10,
-            19, 18,
     });
     private final DriveTrain drivetrain = new DriveTrain(swervedrive, tankdrive);
     private final ElevatorSubsystem elevator = new ElevatorSubsystem(2);
+    private final ArmSubsystem arm = new ArmSubsystem(3);
+    private final AHRS gyro = new AHRS(Port.kMXP);
+
+    public final PneumaticHub pneumaticHub = new PneumaticHub(51);
 
     private final DatabaseSubsystem db = new DatabaseSubsystem();
 
@@ -65,6 +75,18 @@ public class RobotContainer {
         joystick2.btn_7
                 .and(joystick2.btn_8)
                 .onTrue(new ZeroOutMotorsCommand(swervedrive));
+        joystick2.btn_9
+                .onTrue(new IndividualWheelRotationCommand(swervedrive, 0, 1))
+                .onFalse(new IndividualWheelRotationCommand(swervedrive, 0, 0));
+        joystick2.btn_10
+                .onTrue(new IndividualWheelRotationCommand(swervedrive, 1, 1))
+                .onFalse(new IndividualWheelRotationCommand(swervedrive, 1, 0));
+        joystick2.btn_11
+                .onTrue(new IndividualWheelRotationCommand(swervedrive, 2, 1))
+                .onFalse(new IndividualWheelRotationCommand(swervedrive, 2, 0));
+        joystick2.btn_12
+                .onTrue(new IndividualWheelRotationCommand(swervedrive, 3, 1))
+                .onFalse(new IndividualWheelRotationCommand(swervedrive, 3, 0));  
     }
 
     public DriveTrain getDriveTrain() {
@@ -73,6 +95,14 @@ public class RobotContainer {
 
     public ElevatorSubsystem getElevator() {
         return elevator;
+    }
+
+    public ArmSubsystem getArm() {
+        return arm;
+    }
+
+    public AHRS getGyro() {
+        return gyro;
     }
 
     public DatabaseSubsystem getDatabase() {

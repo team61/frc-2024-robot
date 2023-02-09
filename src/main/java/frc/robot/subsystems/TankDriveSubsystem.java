@@ -51,7 +51,4 @@ public class TankDriveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {}
-
-    @Override
-    public void simulationPeriodic() {}
 }
