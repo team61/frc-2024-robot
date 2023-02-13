@@ -7,8 +7,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.commands.SetDriveModeCommand;
 import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
@@ -17,7 +17,6 @@ import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
 
-import com.ctre.phoenix.sensors.CANCoder;
 import com.kauailabs.navx.frc.AHRS;
 
 /**
@@ -35,10 +34,9 @@ public class Robot extends TimedRobot {
     private ElevatorSubsystem elevator;
     private ArmSubsystem arm;
     private AHRS gyro;
+    private BalancingSubsystem balancingSubsystem;
     private DatabaseSubsystem db;
     private SequentialCommandGroup autoCommand;
-
-    CANCoder[] encoders;
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -52,15 +50,11 @@ public class Robot extends TimedRobot {
         elevator = robotContainer.getElevator();
         arm = robotContainer.getArm();
         gyro = robotContainer.getGyro();
+        balancingSubsystem = robotContainer.getBalancer();
         db = robotContainer.getDatabase();
         autoCommand = robotContainer.getAutonomousCommand();
 
-        encoders = new CANCoder[] {
-            new CANCoder(30),
-            new CANCoder(31),
-            new CANCoder(32),
-            new CANCoder(33),
-        };
+        gyro.zeroYaw();
     }
 
     /**
@@ -177,12 +171,6 @@ public class Robot extends TimedRobot {
         //     System.out.print(tag + "   ");
         // }
         // System.out.println();
-
-        // System.out.print("encoders: ");
-        // for (CANCoder encoder : encoders) {
-        //     System.out.print(encoder.getPosition() + "   ");
-        // }
-        // System.out.println();
     }
 
     /** This function is called once when the robot is disabled. */
@@ -190,6 +178,7 @@ public class Robot extends TimedRobot {
     public void disabledInit() {
         drivetrain.swervedrive.disableBreaks();
         elevator.disableBreaks();
+        balancingSubsystem.disable();
     }
 
     /** This function is called periodically when disabled. */

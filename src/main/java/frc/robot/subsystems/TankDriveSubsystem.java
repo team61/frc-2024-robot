@@ -29,6 +29,22 @@ public class TankDriveSubsystem extends SubsystemBase {
         }
     }
 
+    public double getAverageVoltage() {
+        double totalVoltage = 0;
+        double totalMotors = 0;
+
+        for (SwerveMotorsSubsystem motor : driveLeft) {
+            totalVoltage += motor.getWheelVoltage();
+            totalMotors++;
+        }
+        for (SwerveMotorsSubsystem motor : driveRight) {
+            totalVoltage += motor.getWheelVoltage();
+            totalMotors++;
+        }
+
+        return totalVoltage / totalMotors;
+    }
+
     public void driveSpeed(double lSpeed, double rSpeed) {
         for (SwerveMotorsSubsystem swerveUnit : driveLeft) {
             swerveUnit.setWheelSpeed(lSpeed);

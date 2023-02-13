@@ -9,7 +9,6 @@ import com.ctre.phoenix.sensors.CANCoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.*;
-import static frc.robot.Globals.*;
 
 public class SwerveMotorsSubsystem extends SubsystemBase {
     private final WPI_TalonFX wheelMotor;
@@ -48,6 +47,10 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
 
     public void setWheelVoltage(double volts) {
         wheelMotor.setVoltage(volts);
+    }
+
+    public double getWheelVoltage() {
+        return wheelMotor.getBusVoltage();
     }
 
     public void setWheelSpeed(double speed) {
