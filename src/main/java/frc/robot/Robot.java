@@ -4,9 +4,11 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.commands.AlignMotorsCommand;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
@@ -70,6 +72,8 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
+
+        // System.out.println(gyro.getAngle());
     }
 
     /**
@@ -105,8 +109,7 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         drivetrain.swervedrive.enableBreaks();
-        elevator.enableBreaks();
-        robotContainer.pneumaticHub.disableCompressor();
+        robotContainer.pneumaticHub.enableCompressorDigital();
     }
 
     /** This function is called periodically during operator control. */
@@ -140,20 +143,20 @@ public class Robot extends TimedRobot {
                 rSpeed *= SLOWDOWN_COEFFICIENT;
             }
 
+            if (lSpeed > 0.2 && rSpeed > 0.2) {
+                double error = -gyro.getRate();
+                lSpeed = lSpeed + error * 0.05;
+                rSpeed = rSpeed - error * 0.05;
+            }
             drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
         }
 
-        double elevatorSpeed = joystick3.getYAxis(0.05);
+        double elevatorSpeed = joystick3.getYAxis(0.15);
         double elevatorVoltage = elevatorSpeed * MAX_ELEVATOR_VOLTAGE;
-        if (elevatorSpeed > 0) {
-            elevatorVoltage = Math.max(elevatorVoltage, MIN_ELEVATOR_VOLTAGE);
-        }
-        if (elevatorVoltage < 0) {
-            elevatorVoltage = clamp(elevatorVoltage, ELEVATOR_NEGATIVE_LIMIT, 0);
-        }
+        elevatorVoltage = clamp(elevatorVoltage, -MAX_ELEVATOR_VOLTAGE, MAX_ELEVATOR_VOLTAGE);
         elevator.setVoltage(elevatorVoltage);
 
-        double armSpeed = joystick4.getYAxis(0.05);
+        double armSpeed = joystick4.getYAxis(0.15);
         double armVoltage = armSpeed * MAX_ARM_VOLTAGE;
         if (Math.abs(armSpeed) > 0) {
             armVoltage += Math.signum(armSpeed) * MIN_ARM_VOLTAGE;
@@ -177,20 +180,19 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledInit() {
         drivetrain.swervedrive.disableBreaks();
-        elevator.disableBreaks();
         balancingSubsystem.disable();
     }
 
     /** This function is called periodically when disabled. */
     @Override
     public void disabledPeriodic() {
-        System.out.print(gyro.getAngle() + "   ");
-        System.out.print(gyro.getRate() + "   ");
-        System.out.print(gyro.getRoll() + "   ");
-        System.out.print(gyro.getPitch() + "   ");
-        System.out.print(gyro.getYaw() + "   ");
-        System.out.print(gyro.getCompassHeading() + "   ");
-        System.out.println();
+        // System.out.print(gyro.getAngle() + "   ");
+        // System.out.print(gyro.getRate() + "   ");
+        // System.out.print(gyro.getRoll() + "   ");
+        // System.out.print(gyro.getPitch() + "   ");
+        // System.out.print(gyro.getYaw() + "   ");
+        // System.out.print(gyro.getCompassHeading() + "   ");
+        // System.out.println();
     }
 
     /** This function is called once when test mode is enabled. */

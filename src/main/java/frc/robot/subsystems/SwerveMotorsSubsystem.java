@@ -95,7 +95,6 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
 
         if (!isWithinAllowedError) {
             directionMotor.set(ControlMode.MotionMagic, target, DemandType.ArbitraryFeedForward, percentage);
-            System.out.println("adjust");
         }
 
         return isWithinAllowedError;

@@ -10,12 +10,16 @@ import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.AlignMotorsCommand;
 import frc.robot.commands.AutonomousCommand;
+import frc.robot.commands.GrabCommand;
 import frc.robot.commands.IndividualWheelRotationCommand;
+import frc.robot.commands.RotateClawCommand;
 import frc.robot.commands.SetDriveModeCommand;
 import frc.robot.commands.ToggleBalancingCommand;
 import frc.robot.commands.ZeroOutMotorsCommand;
+import frc.robot.commands.ZeroYawCommand;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
+import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
@@ -51,11 +55,13 @@ public class RobotContainer {
 	private final ArmSubsystem arm = new ArmSubsystem(3);
 	private final AHRS gyro = new AHRS(Port.kMXP);
 	private final BalancingSubsystem balancingSubsystem = new BalancingSubsystem(gyro, drivetrain);
-
+	
 	public final PneumaticHub pneumaticHub = new PneumaticHub(51);
+	private final ClawSubsystem claw = new ClawSubsystem(pneumaticHub, new int[] { 0, 1 }, new int[] { 2, 3 });
+	
 	private final DatabaseSubsystem db = new DatabaseSubsystem();
 
-	private final AutonomousCommand autoCommand = new AutonomousCommand(drivetrain, db);
+	private final AutonomousCommand autoCommand = new AutonomousCommand(drivetrain, gyro, db);
 
 	public RobotContainer() {
 		configureButtonBindings();
@@ -67,7 +73,7 @@ public class RobotContainer {
 				.onFalse(new SetDriveModeCommand(drivetrain, TANK_DRIVE));
 
 		joystick2.btn_1
-				.onTrue(new AlignMotorsCommand(swervedrive, MIDDLE));
+				.onTrue(new ZeroYawCommand(gyro));
 		joystick2.btn_3
 				.or(joystick2.btn_5)
 				.onTrue(new AlignMotorsCommand(swervedrive, FORWARDS));
@@ -89,9 +95,12 @@ public class RobotContainer {
 		joystick2.btn_12
 				.onTrue(new IndividualWheelRotationCommand(swervedrive, 3, 1))
 				.onFalse(new IndividualWheelRotationCommand(swervedrive, 3, 0));
+				
+		joystick3.btn_1
+				.onTrue(new RotateClawCommand(claw));
 
 		joystick4.btn_1
-				.onTrue(new ToggleBalancingCommand(balancingSubsystem));
+				.onTrue(new GrabCommand(claw));
 	}
 
 	public DriveTrain getDriveTrain() {
