@@ -154,26 +154,24 @@ public class Robot extends TimedRobot {
         double elevatorSpeed = joystick3.getYAxis(0.15);
         double elevatorVoltage = elevatorSpeed * MAX_ELEVATOR_VOLTAGE;
         elevatorVoltage = clamp(elevatorVoltage, -MAX_ELEVATOR_VOLTAGE, MAX_ELEVATOR_VOLTAGE);
-        elevator.setVoltage(elevatorVoltage);
+        if (joystick3.btn_2.getAsBoolean()) {
+            elevator.setVoltageUnsafe(elevatorVoltage);
+        } else {
+            elevator.setVoltage(arm, elevatorVoltage);
+        }
 
         double armSpeed = joystick4.getYAxis(0.15);
         double armVoltage = armSpeed * MAX_ARM_VOLTAGE;
         if (Math.abs(armSpeed) > 0) {
             armVoltage += Math.signum(armSpeed) * MIN_ARM_VOLTAGE;
         }
-        arm.setVoltage(armVoltage);
+        if (joystick4.btn_2.getAsBoolean()) {
+            arm.setVoltageUnsafe(armVoltage);
+        } else {
+            arm.setVoltage(elevator, armVoltage);
+        }
 
-        // System.out.print("tags: ");
-        // for (long tag : db.getTags()) {
-        //     System.out.print(tag + "   ");
-        // }
-        // System.out.println();
-        
-        // System.out.print("cone: ");
-        // for (long tag : db.getConePos()) {
-        //     System.out.print(tag + "   ");
-        // }
-        // System.out.println();
+        System.out.println("arm: " + arm.getPosition() + ", elevator: " + elevator.getPosition());
     }
 
     /** This function is called once when the robot is disabled. */

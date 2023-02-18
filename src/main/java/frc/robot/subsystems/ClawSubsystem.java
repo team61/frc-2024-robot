@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static edu.wpi.first.wpilibj.DoubleSolenoid.Value.*;
@@ -15,8 +16,16 @@ public class ClawSubsystem extends SubsystemBase {
         grabSolenoid = hub.makeDoubleSolenoid(solenoid2[0], solenoid2[1]);
     }
 
-    public boolean isUninitialized() {
-        return rotateSolenoid.get() == kOff || grabSolenoid.get() == kOff;
+    public boolean isRotationUninitialized() {
+        return rotateSolenoid.get() == kOff;
+    }
+
+    public boolean isGrabbingUninitialized() {
+        return grabSolenoid.get() == kOff;
+    }
+
+    public Value getPosition() {
+        return rotateSolenoid.get();
     }
 
     public void rotateUp() {

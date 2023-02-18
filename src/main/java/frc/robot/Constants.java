@@ -22,8 +22,13 @@ public final class Constants {
     public static final double OVER_ROTATION_PADDING = 0.25;
     public static final double PRECISION_ROTATION_PADDING = 6;
 
-    public static final double ELEVATOR_MIN_POSITION = -22000;
-    public static final double ELEVATOR_MAX_POSITION = 540000;
+    public static final double ELEVATOR_MIN_POSITION = 0;
+    public static final double ELEVATOR_MAX_UNEXTENDED_POSITION = 270000;
+    public static final double ELEVATOR_MAX_POSITION = 740000;
+    public static final double ARM_MIN_POSITION = -167000;
+    public static final double ARM_MAX_POSITION = 0;
+    public static final double ARM_EXTENSION_THRESHOLD = -58000;
+    public static final double ARM_MIN_LOWER_EXTENSION = -50000;
 
     public static final String FORWARDS = "forwards";
     public static final String BACKWARDS = "backwards";

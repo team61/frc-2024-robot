@@ -15,6 +15,8 @@ import frc.robot.commands.IndividualWheelRotationCommand;
 import frc.robot.commands.RotateClawCommand;
 import frc.robot.commands.SetDriveModeCommand;
 import frc.robot.commands.ToggleBalancingCommand;
+import frc.robot.commands.ZeroOutArmCommand;
+import frc.robot.commands.ZeroOutElevatorCommand;
 import frc.robot.commands.ZeroOutMotorsCommand;
 import frc.robot.commands.ZeroYawCommand;
 import frc.robot.subsystems.ArmSubsystem;
@@ -50,14 +52,16 @@ public class RobotContainer {
 			1, 0,
 			9, 8,
 	});
+
+	public final PneumaticHub pneumaticHub = new PneumaticHub(51);
+	private final ClawSubsystem claw = new ClawSubsystem(pneumaticHub, new int[] { 0, 1 }, new int[] { 2, 3 });
+
 	private final DriveTrain drivetrain = new DriveTrain(swervedrive, tankdrive);
-	private final ElevatorSubsystem elevator = new ElevatorSubsystem(2);
 	private final ArmSubsystem arm = new ArmSubsystem(3);
+	private final ElevatorSubsystem elevator = new ElevatorSubsystem(2);
 	private final AHRS gyro = new AHRS(Port.kMXP);
 	private final BalancingSubsystem balancingSubsystem = new BalancingSubsystem(gyro, drivetrain);
 	
-	public final PneumaticHub pneumaticHub = new PneumaticHub(51);
-	private final ClawSubsystem claw = new ClawSubsystem(pneumaticHub, new int[] { 0, 1 }, new int[] { 2, 3 });
 	
 	private final DatabaseSubsystem db = new DatabaseSubsystem();
 
@@ -69,11 +73,13 @@ public class RobotContainer {
 
 	private void configureButtonBindings() {
 		joystick1.btn_1
-				.onTrue(new SetDriveModeCommand(drivetrain, SWERVE_DRIVE))
-				.onFalse(new SetDriveModeCommand(drivetrain, TANK_DRIVE));
+				.onTrue(new SetDriveModeCommand(drivetrain, TANK_DRIVE))
+				.onFalse(new SetDriveModeCommand(drivetrain, SWERVE_DRIVE));
 
+		// joystick2.btn_1
+		// 		.onTrue(new ZeroYawCommand(gyro));
 		joystick2.btn_1
-				.onTrue(new ZeroYawCommand(gyro));
+				.onTrue(new AlignMotorsCommand(swervedrive, BACKWARDS, 500, 2));
 		joystick2.btn_3
 				.or(joystick2.btn_5)
 				.onTrue(new AlignMotorsCommand(swervedrive, FORWARDS));
@@ -98,9 +104,15 @@ public class RobotContainer {
 				
 		joystick3.btn_1
 				.onTrue(new RotateClawCommand(claw));
+		joystick3.btn_7
+				.and(joystick3.btn_8)
+				.onTrue(new ZeroOutElevatorCommand(elevator));
 
 		joystick4.btn_1
 				.onTrue(new GrabCommand(claw));
+		joystick4.btn_7
+				.and(joystick4.btn_8)
+				.onTrue(new ZeroOutArmCommand(arm));
 	}
 
 	public DriveTrain getDriveTrain() {

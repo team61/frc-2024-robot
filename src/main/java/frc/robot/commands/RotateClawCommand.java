@@ -15,7 +15,7 @@ public class RotateClawCommand extends CommandBase {
 
     @Override
     public void execute() {
-        if (claw.isUninitialized()) {
+        if (claw.isRotationUninitialized()) {
             claw.rotateDown();
         } else {
             claw.toggleRotation();

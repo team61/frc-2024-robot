@@ -1,13 +1,15 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.ClawSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
 
-public class GrabCommand extends CommandBase {
-    private final ClawSubsystem claw;
+public class ZeroOutElevatorCommand extends CommandBase {
+    private final ElevatorSubsystem elevator;
 
-    public GrabCommand(ClawSubsystem c) {
-        claw = c;
+    public ZeroOutElevatorCommand(ElevatorSubsystem e) {
+        elevator = e;
+
+        addRequirements(e);
     }
 
     @Override
@@ -15,11 +17,7 @@ public class GrabCommand extends CommandBase {
 
     @Override
     public void execute() {
-        if (claw.isGrabbingUninitialized()) {
-            claw.open();
-        } else {
-            claw.toggleGrab();
-        }
+        elevator.zero();
     }
 
     @Override
