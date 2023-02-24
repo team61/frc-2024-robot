@@ -55,23 +55,29 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         }
     }
 
-    public boolean alignMotors(String direction, int amount) {
+    public boolean alignMotors(String[] directions) {
         boolean[] results = new boolean[swerveMotors.length];
-        double targetPosition = 0;
-        if (direction == BACKWARDS) {
-            targetPosition += ENCODER_UNITS_PER_ROTATION / 2;
-        } else if (direction == SIDEWAYS) {
-            targetPosition += ENCODER_UNITS_PER_ROTATION / 4;
-        } else if (direction == MIDDLE) {
-            for (int i = 1; i <= amount; i++) {
-                SwerveMotorsSubsystem swerveUnit = swerveMotors[i - 1];
-                targetPosition += swerveUnit.getRotationPosition();
+        
+        for (int i = 0; i < swerveMotors.length; i++) {
+            double targetPosition = 0;
+            String direction = directions[i];
+            if (direction.equals(BACKWARDS)) {
+                targetPosition += ENCODER_UNITS_PER_ROTATION / 2;
+            } else if (direction.equals(SIDEWAYS)) {
+                targetPosition += ENCODER_UNITS_PER_ROTATION / 4;
+            } else if (direction.equals(DIAGONAL)) {
+                if (i == 0) {
+                    targetPosition += ENCODER_UNITS_PER_ROTATION / 8;
+                } else if (i == 1) {
+                    targetPosition += -ENCODER_UNITS_PER_ROTATION / 8;
+                } else if (i == 2) {
+                    targetPosition += -ENCODER_UNITS_PER_ROTATION / 4 - ENCODER_UNITS_PER_ROTATION / 8;
+                } else {
+                    targetPosition += ENCODER_UNITS_PER_ROTATION / 4 + ENCODER_UNITS_PER_ROTATION / 8;
+                }
             }
-            targetPosition /= amount;
-        }
-        for (int i = 1; i <= amount; i++) {
-            SwerveMotorsSubsystem swerveUnit = swerveMotors[i - 1];
-            results[i - 1] = swerveUnit.rotateTowards(targetPosition);
+            SwerveMotorsSubsystem swerveUnit = swerveMotors[i];
+            results[i] = swerveUnit.rotateTowards(targetPosition);
         }
 
         for (boolean result : results) {
@@ -82,9 +88,15 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     }
 
     public boolean alignMotors(String direction) {
-        return alignMotors(direction, swerveMotors.length);
+        return alignMotors(new String[] { direction, direction, direction, direction });
     }
 
     @Override
-    public void periodic() {}
+    public void periodic() {
+        // System.out.print("wheels: ");
+        // for (SwerveMotorsSubsystem swerveUnit : swerveMotors) {
+        //     System.out.print(Math.round(swerveUnit.getRotationPosition()) + ", ");
+        // }
+        // System.out.println();
+    }
 }

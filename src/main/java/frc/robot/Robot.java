@@ -4,11 +4,9 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.commands.AlignMotorsCommand;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
@@ -38,7 +36,7 @@ public class Robot extends TimedRobot {
     private AHRS gyro;
     private BalancingSubsystem balancingSubsystem;
     private DatabaseSubsystem db;
-    private SequentialCommandGroup autoCommand;
+    private Command autoCommand;
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -74,6 +72,7 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
 
         // System.out.println(gyro.getAngle());
+        System.out.println("elevator: " + elevator.getPosition() + ", arm: " + arm.getPosition());
     }
 
     /**
@@ -132,7 +131,11 @@ public class Robot extends TimedRobot {
                 rotationVoltage *= SLOWDOWN_COEFFICIENT;
             }
 
-            drivetrain.swervedrive.driveSpeed(speed);
+            double error = 0;
+            if (CURRENT_DIRECTIONS[0].equals(FORWARDS)) {
+                error = -gyro.getRate();
+            }
+            drivetrain.tankdrive.driveSpeed(speed + error * 0.25, speed - error * 0.27);
             drivetrain.swervedrive.setRotationVoltage(rotationVoltage);
         } else {
             double lSpeed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
@@ -143,12 +146,13 @@ public class Robot extends TimedRobot {
                 rSpeed *= SLOWDOWN_COEFFICIENT;
             }
 
-            if (lSpeed > 0.2 && rSpeed > 0.2) {
+            if ((lSpeed > 0.2 || lSpeed < -0.2) && (rSpeed > 0.2 || rSpeed < -0.2)) {
                 double error = -gyro.getRate();
                 lSpeed = lSpeed + error * 0.05;
                 rSpeed = rSpeed - error * 0.05;
             }
             drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
+            drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
         }
 
         double elevatorSpeed = joystick3.getYAxis(0.15);
@@ -171,7 +175,7 @@ public class Robot extends TimedRobot {
             arm.setVoltage(elevator, armVoltage);
         }
 
-        System.out.println("arm: " + arm.getPosition() + ", elevator: " + elevator.getPosition());
+        // System.out.println("arm: " + arm.getPosition() + ", elevator: " + elevator.getPosition());
     }
 
     /** This function is called once when the robot is disabled. */

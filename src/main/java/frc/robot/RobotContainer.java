@@ -7,18 +7,17 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.SPI.Port;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.commands.AlignMotorsCommand;
 import frc.robot.commands.AutonomousCommand;
 import frc.robot.commands.GrabCommand;
+import frc.robot.commands.GrabGamePieceCommand;
 import frc.robot.commands.IndividualWheelRotationCommand;
 import frc.robot.commands.RotateClawCommand;
 import frc.robot.commands.SetDriveModeCommand;
-import frc.robot.commands.ToggleBalancingCommand;
 import frc.robot.commands.ZeroOutArmCommand;
 import frc.robot.commands.ZeroOutElevatorCommand;
 import frc.robot.commands.ZeroOutMotorsCommand;
-import frc.robot.commands.ZeroYawCommand;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
@@ -65,7 +64,7 @@ public class RobotContainer {
 	
 	private final DatabaseSubsystem db = new DatabaseSubsystem();
 
-	private final AutonomousCommand autoCommand = new AutonomousCommand(drivetrain, gyro, db);
+	private final AutonomousCommand autoCommand = new AutonomousCommand(drivetrain, gyro, elevator, arm, claw, db);
 
 	public RobotContainer() {
 		configureButtonBindings();
@@ -79,7 +78,7 @@ public class RobotContainer {
 		// joystick2.btn_1
 		// 		.onTrue(new ZeroYawCommand(gyro));
 		joystick2.btn_1
-				.onTrue(new AlignMotorsCommand(swervedrive, BACKWARDS, 500, 2));
+				.onTrue(new AlignMotorsCommand(swervedrive, DIAGONAL));
 		joystick2.btn_3
 				.or(joystick2.btn_5)
 				.onTrue(new AlignMotorsCommand(swervedrive, FORWARDS));
@@ -107,6 +106,8 @@ public class RobotContainer {
 		joystick3.btn_7
 				.and(joystick3.btn_8)
 				.onTrue(new ZeroOutElevatorCommand(elevator));
+		joystick3.btn_11
+				.onTrue(new GrabGamePieceCommand(BLOCK, elevator, arm, claw));
 
 		joystick4.btn_1
 				.onTrue(new GrabCommand(claw));
@@ -139,7 +140,7 @@ public class RobotContainer {
 		return db;
 	}
 
-	public SequentialCommandGroup getAutonomousCommand() {
-		return autoCommand.andThen(new AlignMotorsCommand(swervedrive, FORWARDS, 2000));
+	public Command getAutonomousCommand() {
+		return autoCommand;
 	}
 }

@@ -16,7 +16,7 @@ public class GrabCommand extends CommandBase {
     @Override
     public void execute() {
         if (claw.isGrabbingUninitialized()) {
-            claw.open();
+            claw.close();
         } else {
             claw.toggleGrab();
         }

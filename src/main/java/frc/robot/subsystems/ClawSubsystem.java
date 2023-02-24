@@ -28,11 +28,11 @@ public class ClawSubsystem extends SubsystemBase {
         return rotateSolenoid.get();
     }
 
-    public void rotateUp() {
+    public void rotateDown() {
         rotateSolenoid.set(kForward);
     }
 
-    public void rotateDown() {
+    public void rotateUp() {
         rotateSolenoid.set(kReverse);
     }
 
