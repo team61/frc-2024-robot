@@ -1,6 +1,5 @@
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 
@@ -42,6 +41,11 @@ public class AlignMotorsCommand extends CommandBase {
     public void initialize() {
         swervedrive.disableBreaks();
         startTime = System.currentTimeMillis();
+        if (directions[0] == DIAGONAL) {
+            IS_ROTATING = true;
+        } else {
+            IS_ROTATING = false;
+        }
     }
 
     @Override

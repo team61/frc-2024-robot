@@ -137,6 +137,9 @@ public class Robot extends TimedRobot {
             }
             drivetrain.tankdrive.driveSpeed(speed + error * 0.25, speed - error * 0.27);
             drivetrain.swervedrive.setRotationVoltage(rotationVoltage);
+            if (!IS_ROTATING) {
+                drivetrain.swervedrive.alignMotors(MIDDLE);
+            }
         } else {
             double lSpeed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
             double rSpeed = joystick2.getYAxis() * Math.abs(joystick2.getYAxis());

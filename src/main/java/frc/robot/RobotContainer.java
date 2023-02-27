@@ -107,7 +107,9 @@ public class RobotContainer {
 				.and(joystick3.btn_8)
 				.onTrue(new ZeroOutElevatorCommand(elevator));
 		joystick3.btn_11
-				.onTrue(new GrabGamePieceCommand(BLOCK, elevator, arm, claw));
+				.onTrue(new GrabGamePieceCommand(HUMAN, elevator, arm, claw));
+		joystick3.btn_12
+				.onTrue(new GrabGamePieceCommand(FLOOR, elevator, arm, claw));
 
 		joystick4.btn_1
 				.onTrue(new GrabCommand(claw));

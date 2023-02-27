@@ -30,8 +30,10 @@ public final class Constants {
     public static final double ARM_EXTENSION_THRESHOLD = -58000;
     public static final double ARM_MIN_LOWER_EXTENSION = -50000;
 
-    public static final double ELEVATOR_GRAB_BLOCK_POSITION = 183000;
-    public static final double ARM_GRAB_BLOCK_POSITION = -2600;
+    public static final double ELEVATOR_HUMAN_PIECE_POSITION = 183000;
+    public static final double ARM_HUMAN_PIECE_POSITION = -2600;
+    public static final double ELEVATOR_FLOOR_PIECE_POSITION = 685000;
+    public static final double ARM_FLOOR_PIECE_POSITION = -43900;
 
     public static final String FORWARDS = "forwards";
     public static final String BACKWARDS = "backwards";
@@ -39,8 +41,8 @@ public final class Constants {
     public static final String DIAGONAL = "diagonal";
     public static final String MIDDLE = "middle";
 
-    public static final String BLOCK = "block";
-    public static final String CONE = "cone";
+    public static final String HUMAN = "human";
+    public static final String FLOOR = "floor";
 
     public static final String SWERVE_DRIVE = "swervedrive";
     public static final String TANK_DRIVE = "tankdrive";

@@ -1,6 +1,5 @@
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
@@ -88,7 +87,7 @@ public class AutonomousCommand extends CommandBase {
                 drivetrain.swervedrive.alignMotors(FORWARDS);
                 drivetrain.tankdrive.driveSpeed(0.35 + error * 0.25, 0.35 - error * 0.27);
 
-                if (System.currentTimeMillis() - startTime > 3125) {
+                if (System.currentTimeMillis() - startTime > 3250) {
                     drivetrain.tankdrive.driveVolts(0, 0);
                     startTime = System.currentTimeMillis();
                     step++;
@@ -153,6 +152,7 @@ public class AutonomousCommand extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         step = 0;
+        finished = false;
     }
 
     @Override

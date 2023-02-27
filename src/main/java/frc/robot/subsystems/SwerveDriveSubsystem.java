@@ -57,6 +57,14 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     public boolean alignMotors(String[] directions) {
         boolean[] results = new boolean[swerveMotors.length];
+
+        double averagePosition = 0;
+        if (directions[0] == MIDDLE) {
+            for (int i = 0; i < swerveMotors.length; i++) {
+                averagePosition += swerveMotors[i].getRotationPosition();
+            }
+            averagePosition /= swerveMotors.length;
+        }
         
         for (int i = 0; i < swerveMotors.length; i++) {
             double targetPosition = 0;
@@ -75,6 +83,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 } else {
                     targetPosition += ENCODER_UNITS_PER_ROTATION / 4 + ENCODER_UNITS_PER_ROTATION / 8;
                 }
+            } else if (direction.equals(MIDDLE)) {
+                targetPosition = averagePosition;
             }
             SwerveMotorsSubsystem swerveUnit = swerveMotors[i];
             results[i] = swerveUnit.rotateTowards(targetPosition);
