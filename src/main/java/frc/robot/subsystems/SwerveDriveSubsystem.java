@@ -5,13 +5,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.*;
 
 public class SwerveDriveSubsystem extends SubsystemBase {
-    private final SwerveMotorsSubsystem[] swerveMotors;
+    public final SwerveMotorsSubsystem[] swerveMotors;
 
-    public SwerveDriveSubsystem(int totalSwerveDriveUnits, int[] motorIDs, int[] encoderIDs) {
+    public SwerveDriveSubsystem(int totalSwerveDriveUnits, int[] motorIDs, int[] encoderIDs, double[] offsets) {
         swerveMotors = new SwerveMotorsSubsystem[totalSwerveDriveUnits];
 
         for (int i = 0; i < totalSwerveDriveUnits; i++) {
-            swerveMotors[i] = new SwerveMotorsSubsystem(motorIDs[i * 2], motorIDs[i * 2 + 1], encoderIDs[i]);
+            swerveMotors[i] = new SwerveMotorsSubsystem(motorIDs[i * 2], motorIDs[i * 2 + 1], encoderIDs[i], offsets[i]);
         }
     }
 

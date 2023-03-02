@@ -20,15 +20,15 @@ public final class Constants {
 
     public static final double ENCODER_UNITS_PER_ROTATION = 360;
     public static final double OVER_ROTATION_PADDING = 0.25;
-    public static final double PRECISION_ROTATION_PADDING = 6;
+    public static final double PRECISION_ROTATION_PADDING = 1;
 
     public static final double ELEVATOR_MIN_POSITION = 0;
     public static final double ELEVATOR_MAX_UNEXTENDED_POSITION = 270000;
     public static final double ELEVATOR_MAX_POSITION = 740000;
-    public static final double ARM_MIN_POSITION = -160000;
+    public static final double ARM_MIN_POSITION = -150000;
     public static final double ARM_MAX_POSITION = 0;
-    public static final double ARM_EXTENSION_THRESHOLD = -58000;
-    public static final double ARM_MIN_LOWER_EXTENSION = -50000;
+    public static final double ARM_EXTENSION_THRESHOLD = -36000;
+    public static final double ARM_MIN_LOWER_EXTENSION = -36000;
 
     public static final double ELEVATOR_HUMAN_PIECE_POSITION = 183000;
     public static final double ARM_HUMAN_PIECE_POSITION = -2600;
@@ -40,6 +40,7 @@ public final class Constants {
     public static final String SIDEWAYS = "sideways";
     public static final String DIAGONAL = "diagonal";
     public static final String MIDDLE = "middle";
+    public static final String OUTER = "outer";
 
     public static final String HUMAN = "human";
     public static final String FLOOR = "floor";

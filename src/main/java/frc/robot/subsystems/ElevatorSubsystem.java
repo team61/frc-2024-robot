@@ -1,7 +1,9 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -14,7 +16,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorMotor = new WPI_TalonFX(motorID);
 
         elevatorMotor.setNeutralMode(NeutralMode.Brake);
-        zero();
+        elevatorMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
+        elevatorMotor.configIntegratedSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
     }
 
     public void zero() {

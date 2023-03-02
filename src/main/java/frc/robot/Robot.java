@@ -4,7 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.ArmSubsystem;
@@ -12,6 +15,7 @@ import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.LEDStripSubsystem;
 import lib.components.LogitechJoystick;
 
 import static frc.robot.Constants.*;
@@ -29,14 +33,19 @@ import com.kauailabs.navx.frc.AHRS;
  * project.
  */
 public class Robot extends TimedRobot {
+    private final int[][] colors = {{255, 0, 0}, {255, 32, 0}, {255, 128, 0}, {0, 255, 0}, {0, 0, 255}, {255, 0, 255}};
+    private double colorOffset = 0;
     private RobotContainer robotContainer;
     private DriveTrain drivetrain;
     private ElevatorSubsystem elevator;
     private ArmSubsystem arm;
     private AHRS gyro;
     private BalancingSubsystem balancingSubsystem;
+    private LEDStripSubsystem ledStrip;
     private DatabaseSubsystem db;
     private Command autoCommand;
+    private SendableChooser<String> autoChooser;
+    private long teleopStartTime;
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -51,10 +60,17 @@ public class Robot extends TimedRobot {
         arm = robotContainer.getArm();
         gyro = robotContainer.getGyro();
         balancingSubsystem = robotContainer.getBalancer();
+        ledStrip = robotContainer.getLEDStrip();
         db = robotContainer.getDatabase();
         autoCommand = robotContainer.getAutonomousCommand();
 
         gyro.zeroYaw();
+        CameraServer.startAutomaticCapture();
+
+        autoChooser = new SendableChooser<>();
+        autoChooser.setDefaultOption(MIDDLE, MIDDLE);
+        autoChooser.addOption(OUTER, OUTER);
+        SmartDashboard.putData("Auto Selector", autoChooser);
     }
 
     /**
@@ -72,7 +88,11 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
 
         // System.out.println(gyro.getAngle());
-        System.out.println("elevator: " + elevator.getPosition() + ", arm: " + arm.getPosition());
+        System.out.println("elevator: " + elevator.getPosition() + ", arm: " + arm.getPosition() + ", limit: " + arm.limitSwitch.get());
+        // System.out.print("18,19 " + drivetrain.swervedrive.swerveMotors[0].getRotationPosition() + ", ");
+        // System.out.print("10,11 " + drivetrain.swervedrive.swerveMotors[1].getRotationPosition() + ", ");
+        // System.out.print("8,9 " + drivetrain.swervedrive.swerveMotors[2].getRotationPosition() + ", ");
+        // System.out.println("0,1 " + drivetrain.swervedrive.swerveMotors[3].getRotationPosition());
     }
 
     /**
@@ -96,19 +116,29 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         drivetrain.swervedrive.disableBreaks();
 
-        autoCommand.schedule();
+        switch (autoChooser.getSelected()) {
+            case MIDDLE:
+                autoCommand.schedule();
+        }
     }
 
     /** This function is called periodically during autonomous. */
     @Override
     public void autonomousPeriodic() {
+        for (int i = 0; i < ledStrip.getLength(); i++) {
+            int[] color = colors[(int)(i + colorOffset) % colors.length];
+            ledStrip.setRGB(i, color[0], color[1], color[2]);
+        }
+        colorOffset += 0.2;
     }
 
     /** This function is called once when teleop is enabled. */
     @Override
     public void teleopInit() {
+        autoCommand.cancel();
         drivetrain.swervedrive.enableBreaks();
         robotContainer.pneumaticHub.enableCompressorDigital();
+        teleopStartTime = System.currentTimeMillis();
     }
 
     /** This function is called periodically during operator control. */
@@ -120,7 +150,7 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick4 = robotContainer.joystick4;
 
         if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
-            double speed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
+            double speed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis(0.15));
             double rotationVoltage = -joystick2.getZAxis(0.05) * MAX_ROTATION_VOLTAGE;
             
             if (joystick1.btn_2.getAsBoolean()) {
@@ -135,14 +165,16 @@ public class Robot extends TimedRobot {
             if (CURRENT_DIRECTIONS[0].equals(FORWARDS)) {
                 error = -gyro.getRate();
             }
-            drivetrain.tankdrive.driveSpeed(speed + error * 0.25, speed - error * 0.27);
+            drivetrain.tankdrive.driveSpeed(speed + error * Math.abs(error / 4), speed - error * Math.abs(error));
             drivetrain.swervedrive.setRotationVoltage(rotationVoltage);
-            if (!IS_ROTATING) {
+            if (!IS_ROTATING && -joystick2.getZAxis(0.05) == 0) {
                 drivetrain.swervedrive.alignMotors(MIDDLE);
+            } else if (IS_ROTATING) {
+                drivetrain.swervedrive.alignMotors(DIAGONAL);
             }
         } else {
-            double lSpeed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis());
-            double rSpeed = joystick2.getYAxis() * Math.abs(joystick2.getYAxis());
+            double lSpeed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis(0.15));
+            double rSpeed = joystick2.getYAxis() * Math.abs(joystick2.getYAxis(0.15));
 
             if (joystick1.btn_2.getAsBoolean() || joystick2.btn_2.getAsBoolean()) {
                 lSpeed *= SLOWDOWN_COEFFICIENT;
@@ -178,16 +210,30 @@ public class Robot extends TimedRobot {
             arm.setVoltage(elevator, armVoltage);
         }
 
-        // System.out.println("arm: " + arm.getPosition() + ", elevator: " + elevator.getPosition());
+        double timeElapsed = (System.currentTimeMillis() - teleopStartTime) / 1000.0;
+        if (timeElapsed > 105) {
+            if (Math.round(timeElapsed * 2) == Math.floor(timeElapsed * 2)) {
+                ledStrip.setStripRGB(255, 0, 0);
+            } else {
+                ledStrip.off();
+            }
+        } else {
+            if (joystick3.getRawAxis(3) > 0) {
+                ledStrip.setStripRGB(255, 0, 128);
+            } else {
+                ledStrip.setStripRGB(255, 128, 0);
+            }
+        }
     }
 
     /** This function is called once when the robot is disabled. */
     @Override
     public void disabledInit() {
+        ledStrip.off();
         drivetrain.swervedrive.disableBreaks();
         balancingSubsystem.disable();
     }
-
+    
     /** This function is called periodically when disabled. */
     @Override
     public void disabledPeriodic() {
@@ -198,6 +244,18 @@ public class Robot extends TimedRobot {
         // System.out.print(gyro.getYaw() + "   ");
         // System.out.print(gyro.getCompassHeading() + "   ");
         // System.out.println();
+        if (robotContainer.joystick3.getRawAxis(3) > 0) {
+            for (int i = 0; i < ledStrip.getLength(); i++) {
+                if (Math.floor((i + colorOffset) / 7) % 2 == 0) {
+                    ledStrip.setRGB(i, 255, 128, 0);
+                } else {
+                    ledStrip.setRGB(i, 255, 0, 128);
+                }
+            }
+            colorOffset += 0.3;
+        } else {
+            ledStrip.off();
+        }
     }
 
     /** This function is called once when test mode is enabled. */

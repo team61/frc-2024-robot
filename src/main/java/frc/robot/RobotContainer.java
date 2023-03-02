@@ -24,6 +24,7 @@ import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.LEDStripSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.subsystems.TankDriveSubsystem;
 
@@ -43,6 +44,11 @@ public class RobotContainer {
 			31,
 			32,
 			33,
+	}, new double[] {
+			162.176,
+			137.375,
+			36.858,
+			-27.549,
 	});
 	private final TankDriveSubsystem tankdrive = new TankDriveSubsystem(2, new int[] {
 			11, 10,
@@ -53,14 +59,14 @@ public class RobotContainer {
 	});
 
 	public final PneumaticHub pneumaticHub = new PneumaticHub(51);
+	private final ElevatorSubsystem elevator = new ElevatorSubsystem(2);
+	private final ArmSubsystem arm = new ArmSubsystem(3, 0);
 	private final ClawSubsystem claw = new ClawSubsystem(pneumaticHub, new int[] { 0, 1 }, new int[] { 2, 3 });
+	private final LEDStripSubsystem ledStrip = new LEDStripSubsystem(0, 56);
 
 	private final DriveTrain drivetrain = new DriveTrain(swervedrive, tankdrive);
-	private final ArmSubsystem arm = new ArmSubsystem(3);
-	private final ElevatorSubsystem elevator = new ElevatorSubsystem(2);
 	private final AHRS gyro = new AHRS(Port.kMXP);
 	private final BalancingSubsystem balancingSubsystem = new BalancingSubsystem(gyro, drivetrain);
-	
 	
 	private final DatabaseSubsystem db = new DatabaseSubsystem();
 
@@ -133,9 +139,13 @@ public class RobotContainer {
 	public AHRS getGyro() {
 		return gyro;
 	}
-
+	
 	public BalancingSubsystem getBalancer() {
 		return balancingSubsystem;
+	}
+
+	public LEDStripSubsystem getLEDStrip() {
+		return ledStrip;
 	}
 
 	public DatabaseSubsystem getDatabase() {

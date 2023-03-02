@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
@@ -20,6 +21,7 @@ public class AutonomousCommand extends CommandBase {
     private final DatabaseSubsystem db;
     private int step;
     private long startTime;
+    private String autoMode = MIDDLE;
     private boolean finished = false;
 
     public AutonomousCommand(DriveTrain dt, AHRS g, ElevatorSubsystem e, ArmSubsystem a, ClawSubsystem c, DatabaseSubsystem dbs) {
@@ -35,8 +37,11 @@ public class AutonomousCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        step = 0;
+        step = 0; // 0: start, 4: drive, 7: done
         startTime = -1;
+        gyro.zeroYaw();
+
+        autoMode = SmartDashboard.getString("Auto Selector", "middle") == OUTER ? OUTER : MIDDLE;
     }
 
     @Override
@@ -44,7 +49,6 @@ public class AutonomousCommand extends CommandBase {
         double error;
         switch (step) {
             case 0:
-                gyro.zeroYaw();
                 claw.close();
                 claw.rotateUp();
                 step++;
@@ -85,12 +89,24 @@ public class AutonomousCommand extends CommandBase {
             case 5:
                 error = -gyro.getRate();
                 drivetrain.swervedrive.alignMotors(FORWARDS);
-                drivetrain.tankdrive.driveSpeed(0.35 + error * 0.25, 0.35 - error * 0.27);
+                if (autoMode.equals(MIDDLE)) {
+                    drivetrain.tankdrive.driveSpeed(0.35 + error * 0.25, 0.35 - error * 0.27);
 
-                if (System.currentTimeMillis() - startTime > 3250) {
-                    drivetrain.tankdrive.driveVolts(0, 0);
-                    startTime = System.currentTimeMillis();
-                    step++;
+                    if (System.currentTimeMillis() - startTime > 3500) {
+                        drivetrain.tankdrive.driveVolts(0, 0);
+                        startTime = System.currentTimeMillis();
+                        step++;
+                    }
+                } else {
+                    double diff = System.currentTimeMillis() - startTime;
+                    double coeff = diff / 3250 / 4;
+                    drivetrain.tankdrive.driveSpeed((coeff + 0.1) + error * -Math.abs(error), (coeff + 0.1) - error * Math.abs(error));
+                
+                    if (System.currentTimeMillis() - startTime > 3250) {
+                        drivetrain.tankdrive.driveVolts(0, 0);
+                        startTime = System.currentTimeMillis();
+                        step++;
+                    }
                 }
 
                 break;
