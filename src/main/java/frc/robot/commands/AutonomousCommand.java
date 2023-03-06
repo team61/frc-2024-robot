@@ -70,6 +70,7 @@ public class AutonomousCommand extends CommandBase {
                 }
                 break;
             case 3:
+                drivetrain.swervedrive.alignMotors(FORWARDS);
                 if (arm.getPosition() <= ARM_MAX_POSITION - 5000) {
                     arm.setVoltage(elevator, MAX_ARM_VOLTAGE);
                 } else {
@@ -87,12 +88,12 @@ public class AutonomousCommand extends CommandBase {
                 step++;
                 break;
             case 5:
-                error = -gyro.getRate();
+                error = gyro.getRate();
                 drivetrain.swervedrive.alignMotors(FORWARDS);
                 if (autoMode.equals(MIDDLE)) {
                     drivetrain.tankdrive.driveSpeed(0.35 + error * 0.25, 0.35 - error * 0.27);
 
-                    if (System.currentTimeMillis() - startTime > 3500) {
+                    if (System.currentTimeMillis() - startTime > 2800) {
                         drivetrain.tankdrive.driveVolts(0, 0);
                         startTime = System.currentTimeMillis();
                         step++;
@@ -151,7 +152,7 @@ public class AutonomousCommand extends CommandBase {
 
         //         break;
         //     case 3:
-        //         error = -gyro.getRate();
+        //         error = gyro.getRate();
         //         drivetrain.tankdrive.driveSpeed(-0.5 + error * 0.04, -0.5 - error * 0.12);
 
         //         if (System.currentTimeMillis() - startTime > 2500) {

@@ -17,7 +17,7 @@ public class ArmSubsystem extends SubsystemBase {
         armMotor = new WPI_TalonFX(motorID);
         limitSwitch = new DigitalInput(limitSwitchPort);
 
-        armMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute);
+        armMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
         armMotor.configIntegratedSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
     }
 

@@ -15,7 +15,7 @@ public final class Constants {
     public static final double MAX_ELEVATOR_VOLTAGE = 12;
     public static final double ELEVATOR_NEGATIVE_LIMIT = -3;
     public static final double MIN_ARM_VOLTAGE = 0.5;
-    public static final double MAX_ARM_VOLTAGE = 4;
+    public static final double MAX_ARM_VOLTAGE = 6;
     public static final double SLOWDOWN_COEFFICIENT = 0.5;
 
     public static final double ENCODER_UNITS_PER_ROTATION = 360;
@@ -23,7 +23,7 @@ public final class Constants {
     public static final double PRECISION_ROTATION_PADDING = 1;
 
     public static final double ELEVATOR_MIN_POSITION = 0;
-    public static final double ELEVATOR_MAX_UNEXTENDED_POSITION = 270000;
+    public static final double ELEVATOR_MAX_UNEXTENDED_POSITION = 380000;
     public static final double ELEVATOR_MAX_POSITION = 740000;
     public static final double ARM_MIN_POSITION = -150000;
     public static final double ARM_MAX_POSITION = 0;

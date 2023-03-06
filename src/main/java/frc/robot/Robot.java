@@ -87,12 +87,13 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
 
-        // System.out.println(gyro.getAngle());
-        System.out.println("elevator: " + elevator.getPosition() + ", arm: " + arm.getPosition() + ", limit: " + arm.limitSwitch.get());
+        // System.out.println(gyro.getRate());
+        // System.out.println("elevator: " + elevator.getPosition() + ", arm: " + arm.getPosition() + ", limit: " + arm.limitSwitch.get());
         // System.out.print("18,19 " + drivetrain.swervedrive.swerveMotors[0].getRotationPosition() + ", ");
         // System.out.print("10,11 " + drivetrain.swervedrive.swerveMotors[1].getRotationPosition() + ", ");
         // System.out.print("8,9 " + drivetrain.swervedrive.swerveMotors[2].getRotationPosition() + ", ");
         // System.out.println("0,1 " + drivetrain.swervedrive.swerveMotors[3].getRotationPosition());
+        System.out.println("Roll: " + gyro.getRoll() + ", Pitch: " + gyro.getPitch() + ", Yaw: " + gyro.getYaw());
     }
 
     /**
@@ -116,10 +117,7 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         drivetrain.swervedrive.disableBreaks();
 
-        switch (autoChooser.getSelected()) {
-            case MIDDLE:
-                autoCommand.schedule();
-        }
+        autoCommand.schedule();
     }
 
     /** This function is called periodically during autonomous. */
@@ -139,6 +137,8 @@ public class Robot extends TimedRobot {
         drivetrain.swervedrive.enableBreaks();
         robotContainer.pneumaticHub.enableCompressorDigital();
         teleopStartTime = System.currentTimeMillis();
+        CURRENT_DIRECTIONS = new String[] { FORWARDS, FORWARDS, FORWARDS, FORWARDS };
+        IS_ROTATING = true;
     }
 
     /** This function is called periodically during operator control. */
@@ -163,7 +163,7 @@ public class Robot extends TimedRobot {
 
             double error = 0;
             if (CURRENT_DIRECTIONS[0].equals(FORWARDS)) {
-                error = -gyro.getRate();
+                error = gyro.getRate();
             }
             drivetrain.tankdrive.driveSpeed(speed + error * Math.abs(error / 4), speed - error * Math.abs(error));
             drivetrain.swervedrive.setRotationVoltage(rotationVoltage);
@@ -173,18 +173,18 @@ public class Robot extends TimedRobot {
                 drivetrain.swervedrive.alignMotors(DIAGONAL);
             }
         } else {
-            double lSpeed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis(0.15));
-            double rSpeed = joystick2.getYAxis() * Math.abs(joystick2.getYAxis(0.15));
+            double lSpeed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
+            double rSpeed = joystick2.getYAxis(0.15) * Math.abs(joystick2.getYAxis(0.15));
 
             if (joystick1.btn_2.getAsBoolean() || joystick2.btn_2.getAsBoolean()) {
                 lSpeed *= SLOWDOWN_COEFFICIENT;
                 rSpeed *= SLOWDOWN_COEFFICIENT;
             }
 
-            if ((lSpeed > 0.2 || lSpeed < -0.2) && (rSpeed > 0.2 || rSpeed < -0.2)) {
-                double error = -gyro.getRate();
-                lSpeed = lSpeed + error * 0.05;
-                rSpeed = rSpeed - error * 0.05;
+            if (Math.abs(lSpeed) > 0.2 && Math.abs(rSpeed) > 0.2) {
+                double error = gyro.getRate();
+                lSpeed = lSpeed + error * Math.abs(error / 4);
+                rSpeed = rSpeed - error * Math.abs(error);
             }
             drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
             drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);

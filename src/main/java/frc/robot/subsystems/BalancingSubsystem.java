@@ -10,6 +10,8 @@ public class BalancingSubsystem extends SubsystemBase {
     private final AHRS gyro;
     private final DriveTrain drivetrain;
     private boolean enabled = false;
+    private double previousRoll = 0;
+    private double currentRoll = 0;
 
     public BalancingSubsystem(AHRS g, DriveTrain dt) {
         gyro = g;
@@ -34,12 +36,19 @@ public class BalancingSubsystem extends SubsystemBase {
     public void periodic() {
         if (!enabled) return;
 
-        double newVoltage = -gyro.getRate() * 10;
-        double volts = clamp(newVoltage, -1, 1);
-        if (volts < 0.1 && volts > -0.1) {
-            drivetrain.tankdrive.stop();
-        } else {
-            drivetrain.tankdrive.driveVolts(volts, volts);
-        }
+        // double newVoltage = -gyro.getRate() * 10;
+        // double volts = clamp(newVoltage, -1, 1);
+        // if (volts < 0.1 && volts > -0.1) {
+        //     drivetrain.tankdrive.stop();
+        // } else {
+        //     drivetrain.tankdrive.driveVolts(volts, volts);
+        // }
+        
+        previousRoll = currentRoll;
+        currentRoll = gyro.getRoll();
+        double rollRate = currentRoll - previousRoll;
+        double speed = -rollRate / 4;
+        double error = gyro.getRate();
+        drivetrain.tankdrive.driveSpeed(speed + error * Math.abs(error / 4), speed - error * Math.abs(error));
     }
 }
