@@ -29,14 +29,30 @@ public class ArmSubsystem extends SubsystemBase {
         return armMotor.getSelectedSensorPosition();
     }
 
+    public boolean isFullyRetracted() {
+        return getPosition() >= ARM_MAX_POSITION || !limitSwitch.get();
+    }
+
+    public boolean isFullyRetracted(double pos) {
+        return pos >= ARM_MAX_POSITION || !limitSwitch.get();
+    }
+
+    public boolean isFullyExtended() {
+        return getPosition() <= ARM_MIN_POSITION;
+    }
+
+    public boolean isFullyExtended(double pos) {
+        return pos <= ARM_MIN_POSITION;
+    }
+
     public void setVoltage(ElevatorSubsystem elevator, double volts) {
         double pos = getPosition();
         
-        if ((pos >= ARM_MAX_POSITION || !limitSwitch.get()) && volts > 0) {
+        if (isFullyRetracted(pos) && volts > 0) {
             volts = 0;
         }
         
-        if (pos <= ARM_MIN_POSITION && volts < 0) {
+        if (isFullyExtended(pos) && volts < 0) {
             volts = 0;
         }
 
@@ -52,6 +68,10 @@ public class ArmSubsystem extends SubsystemBase {
             volts = 0;
         }
         armMotor.setVoltage(volts);
+    }
+
+    public void stop() {
+        setVoltageUnsafe(0);
     }
 
     @Override

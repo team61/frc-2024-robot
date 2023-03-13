@@ -26,6 +26,7 @@ import static frc.robot.Globals.*;
 
 import java.util.ArrayList;
 
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 
 /**
@@ -46,23 +47,7 @@ public class Robot extends TimedRobot {
         { 0, 0, 255 },
         { 255, 0, 255 },
     };
-    private final int[][] reds = {
-        { 255, 0, 0 },
-        { 255, 64, 0 },
-        { 255, 128, 0 },
-        { 255, 196, 0 },
-        { 255, 255, 0 },
-        { 255, 255, 255 },
-    };
-    private final int[][] blues = {
-        { 0, 0, 255 },
-        { 0, 64, 255 },
-        { 0, 128, 255 },
-        { 0, 196, 255 },
-        { 0, 255, 255 },
-        { 255, 255, 255 },
-    };
-    private int[][] teamColors = colors;
+    private Alliance team = Alliance.Invalid;
     private double colorOffset = 0;
     private RobotContainer robotContainer;
     private DriveTrain drivetrain;
@@ -76,7 +61,8 @@ public class Robot extends TimedRobot {
     private Command autoCommand;
     private SendableChooser<String> autoChooser;
     private long teleopStartTime;
-    private final ArrayList<Object> components = new ArrayList<>();
+    public static final ArrayList<WPI_TalonFX> components = new ArrayList<>();
+    private ArrayList<double[]> recording = new ArrayList<>();
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -105,12 +91,13 @@ public class Robot extends TimedRobot {
         SmartDashboard.putData("Auto Selector", autoChooser);
 
         for (var swerveUnit : drivetrain.swervedrive.swerveMotors) {
-            components.add(swerveUnit.directionMotor);
+            // components.add(swerveUnit.directionMotor);
             components.add(swerveUnit.wheelMotor);
         }
         components.add(elevator.elevatorMotor);
         components.add(arm.armMotor);
-        components.add(claw);
+        // components.add(claw.rotateSolenoid);
+        // components.add(claw.grabSolenoid);
     }
 
     /**
@@ -134,7 +121,7 @@ public class Robot extends TimedRobot {
         // System.out.print("10,11 " + drivetrain.swervedrive.swerveMotors[1].getRotationPosition() + ", ");
         // System.out.print("8,9 " + drivetrain.swervedrive.swerveMotors[2].getRotationPosition() + ", ");
         // System.out.println("0,1 " + drivetrain.swervedrive.swerveMotors[3].getRotationPosition());
-        System.out.println("Roll: " + gyro.getRoll() + ", Pitch: " + gyro.getPitch() + ", Yaw: " + gyro.getYaw());
+        // System.out.println("Roll: " + gyro.getRoll() + ", Pitch: " + gyro.getPitch() + ", Yaw: " + gyro.getYaw());
     }
 
     /**
@@ -157,18 +144,29 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
         drivetrain.swervedrive.disableWheelBreaks();
+        team = DriverStation.getAlliance();
 
-        teamColors = DriverStation.getAlliance() == Alliance.Red ? reds : blues;
         autoCommand.schedule();
     }
 
     /** This function is called periodically during autonomous. */
     @Override
     public void autonomousPeriodic() {
+        drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
+
         for (int i = 0; i < ledStrip.getLength(); i++) {
-            int[] color = teamColors[(int)(i + colorOffset) % teamColors.length];
+            int[] color = colors[(int)(i + colorOffset) % colors.length];
             ledStrip.setRGB(i, color[0], color[1], color[2]);
         }
+
+        for (int i = 0; i < ledStrip.getLength(); i += 2) {
+            if (team == Alliance.Blue) {
+                ledStrip.setRGB(i, 0, 0, 255);
+            } else {
+                ledStrip.setRGB(i, 255, 0, 0);
+            }
+        }
+
         colorOffset += 0.2;
     }
 
@@ -253,6 +251,15 @@ public class Robot extends TimedRobot {
             arm.setVoltage(elevator, armVoltage);
         }
 
+        if (IS_RECORDING) {
+            double[] data = new double[components.size()];
+            for (int i = 0; i < data.length; i++) {
+                //data[i] = components.get(i).getMotorOutputVoltage();
+                data[i] = components.get(i).getMotorOutputPercent();
+            }
+            recording.add(data);
+        }
+
         double timeElapsed = (System.currentTimeMillis() - teleopStartTime) / 1000.0;
         if (timeElapsed > 105) {
             if (Math.round(timeElapsed * 2) == Math.floor(timeElapsed * 2)) {
@@ -275,6 +282,22 @@ public class Robot extends TimedRobot {
         ledStrip.off();
         drivetrain.swervedrive.disableWheelBreaks();
         balancingSubsystem.disable();
+        IS_RECORDING = false;
+
+        if (recording.size() > 0) {
+            new Thread(() -> {
+                System.out.print("\n\n\n\n\n\npublic static double[][] voltages=new double[][]{");
+                for (double[] data : recording) {
+                    System.out.print("new double[]{");
+                    for (double voltage : data) {
+                        System.out.print(voltage + ",");
+                    }
+                    System.out.print("},");
+                }
+                System.out.println("};\n\n\n\n\n\n");
+                recording = new ArrayList<>();
+            }).start();
+        }
     }
     
     /** This function is called periodically when disabled. */

@@ -2,6 +2,7 @@ package frc.robot;
 
 import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
+import static frc.robot.Globals.*;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -126,6 +127,9 @@ public class RobotContainer {
 		joystick4.btn_7
 				.and(joystick4.btn_8)
 				.onTrue(new ZeroOutArmCommand(arm));
+		joystick4.btn_11
+				.and(joystick4.btn_12)
+				.onTrue(new InstantCommand(() -> { IS_RECORDING = true; }));
 	}
 
 	public DriveTrain getDriveTrain() {

@@ -2,15 +2,29 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import frc.robot.Robot;
+import frc.robot.recordings.OuterAuto;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
-import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
 
 import static frc.robot.Constants.*;
 
+import java.util.ArrayList;
+import java.util.function.BooleanSupplier;
+
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 
 public class AutonomousCommand extends CommandBase {
@@ -20,10 +34,11 @@ public class AutonomousCommand extends CommandBase {
     private final ArmSubsystem arm;
     private final ClawSubsystem claw;
     private final BalancingSubsystem balancer;
-    private int step;
-    private long startTime;
+    private final ArrayList<WPI_TalonFX> components = Robot.components;
+    private final double[][] instructions = OuterAuto.voltages;
+    private int instructionIndex = 0;
     private String autoMode = MIDDLE;
-    private boolean finished = false;
+    private boolean finished;
 
     public AutonomousCommand(DriveTrain dt, AHRS g, ElevatorSubsystem e, ArmSubsystem a, ClawSubsystem c, BalancingSubsystem b) {
         drivetrain = dt;
@@ -38,140 +53,94 @@ public class AutonomousCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        step = 0; // 0: start, 4: drive, 7: done
-        startTime = -1;
         gyro.zeroYaw();
 
-        autoMode = SmartDashboard.getString("Auto Selector", "middle") == OUTER ? OUTER : MIDDLE;
+        autoMode = SmartDashboard.getString("Auto Selector", "middle").equals(OUTER) ? OUTER : MIDDLE;
     }
 
     @Override
     public void execute() {
-        double error;
-        switch (step) {
-            case 0:
-                claw.close();
-                claw.rotateUp();
-                step++;
-                break;
-            case 1:
-                arm.setVoltage(elevator, -MAX_ARM_VOLTAGE);
-                if (arm.getPosition() < ARM_MIN_POSITION + 1000) {
-                    step++;
-                }
-                break;
-            case 2:
-                arm.setVoltageUnsafe(0);
-                claw.open();
-                if (startTime == -1) {
-                    startTime = System.currentTimeMillis();
-                } else if (System.currentTimeMillis() - startTime > 500) {
-                    startTime = -1;
-                    step++;
-                }
-                break;
-            case 3:
-                drivetrain.swervedrive.alignMotors(FORWARDS);
-                if (arm.getPosition() <= ARM_MAX_POSITION - 5000) {
-                    arm.setVoltage(elevator, MAX_ARM_VOLTAGE);
-                } else {
-                    claw.rotateDown();
-                    arm.setVoltageUnsafe(0);
-                    elevator.setVoltage(arm, MAX_ELEVATOR_VOLTAGE);
-                    if (elevator.getPosition() > ELEVATOR_MAX_UNEXTENDED_POSITION) {
-                        step++;
-                    }
-                }
-                break;
-            case 4:
-                elevator.setVoltageUnsafe(0);
-                startTime = System.currentTimeMillis();
-                step++;
-                break;
-            case 5:
-                error = gyro.getRate();
-                drivetrain.swervedrive.alignMotors(FORWARDS);
-                if (autoMode.equals(MIDDLE)) {
-                    drivetrain.tankdrive.driveSpeed(0.35 + error * 0.25, 0.35 - error * 0.27);
-
-                    if (System.currentTimeMillis() - startTime > 2600) {
-                        drivetrain.tankdrive.driveVolts(0, 0);
-                        startTime = System.currentTimeMillis();
-                        step++;
-                    }
-                } else {
-                    double diff = System.currentTimeMillis() - startTime;
-                    double coeff = diff / 3250 / 4;
-                    drivetrain.tankdrive.driveSpeed((coeff + 0.1) + error * -Math.abs(error), (coeff + 0.1) - error * Math.abs(error));
-                
-                    if (System.currentTimeMillis() - startTime > 3250) {
-                        drivetrain.tankdrive.driveVolts(0, 0);
-                        startTime = System.currentTimeMillis();
-                        step++;
-                    }
-                }
-
-                break;
-            case 6:
-                // drivetrain.swervedrive.alignMotors(DIAGONAL);
-                balancer.enable();
-                drivetrain.enableWheelBreaks();
-
-                if (System.currentTimeMillis() - startTime > 10000) {
-                    step++;
-                }
-                break;
-            default:
-                finished = true;
+        if (autoMode.equals(MIDDLE)) {
+            middle();
+        } else if (autoMode.equals(OUTER)) {
+            outer();
         }
+    }
 
-        // double error;
-        // switch (step) {
-        //     case 0:
-        //         gyro.zeroYaw();
-        //         startTime = System.currentTimeMillis();
-        //         step++;
-        //         break;
-        //     case 1:
-        //         drivetrain.tankdrive.driveVolts(4, 4);
-        //         if (System.currentTimeMillis() - startTime > 500) {
-        //             drivetrain.tankdrive.driveVolts(0, 0);
-        //             step++;
-        //         }
+    void middle() {
+        new SequentialCommandGroup(
+            new ParallelCommandGroup(
+                new InstantCommand(claw::close),
+                new InstantCommand(claw::rotateUp),
+                new InstantCommand(() -> { arm.setVoltage(elevator, -MAX_ARM_VOLTAGE); })
+            ),
+            new WaitUntilCommand((BooleanSupplier)arm::isFullyExtended),
+            new InstantCommand(arm::stop),
+            new WaitCommand(0.2),
+            new InstantCommand(claw::open),
+            new WaitCommand(0.5),
+            new ParallelCommandGroup(
+                new WaitCommand(0.5).andThen(claw::rotateDown),
+                new ParallelRaceGroup(
+                    new RepeatCommand(
+                        new ParallelCommandGroup(
+                            new ConditionalCommand(
+                                new InstantCommand(arm::stop),
+                                new InstantCommand(() -> { arm.setVoltage(elevator, MAX_ARM_VOLTAGE); }),
+                                arm::isFullyRetracted),
+                            new ConditionalCommand(
+                                new InstantCommand(elevator::stop),
+                                new InstantCommand(() -> { elevator.setVoltage(arm, MAX_ELEVATOR_VOLTAGE); }),
+                                elevator::isPastMaxUnextendedPosition
+                            ),
+                            new InstantCommand(() -> {
+                                double error = gyro.getRate();
+                                drivetrain.tankdrive.driveSpeed(0.4 + error * Math.abs(error / 4), 0.4 - error * Math.abs(error));
+                                drivetrain.swervedrive.alignMotors(FORWARDS);
+                            })
+                        )
+                    ),
+                    new WaitCommand(2.8)
+                )
+            ),
+            new ParallelCommandGroup(
+                new InstantCommand(arm::stop),
+                new InstantCommand(elevator::stop),
+                new InstantCommand(drivetrain.tankdrive::stop)
+            ),
+            new WaitCommand(1),
+            new ParallelRaceGroup(
+                new RepeatCommand(
+                    new InstantCommand(() -> {
+                        double error = gyro.getRate();
+                        drivetrain.tankdrive.driveSpeed(-0.4 + error * Math.abs(error / 4), -0.4 - error * Math.abs(error));
+                        drivetrain.swervedrive.alignMotors(FORWARDS);
+                    })
+                ),
+                new WaitCommand(1.5)
+            ),
+            new WaitCommand(1),
+            new ToggleBalancingCommand(drivetrain.swervedrive, balancer)
+        ).schedule();
+        finished = true;
+    }
 
-        //         break;
-        //     case 2:
-        //         error = 180 - gyro.getAngle();
-        //         double lVolts = -3 - error * 0.1;
-        //         double rVolts = 3 + error * 0.1;
-        
-        //         drivetrain.tankdrive.driveVolts(lVolts, rVolts);
-        
-        //         if (Math.abs(gyro.getAngle() - 180) <= 15) {
-        //             drivetrain.tankdrive.driveVolts(0, 0);
-        //             startTime = System.currentTimeMillis();
-        //             step++;
-        //         }
-
-        //         break;
-        //     case 3:
-        //         error = gyro.getRate();
-        //         drivetrain.tankdrive.driveSpeed(-0.5 + error * 0.04, -0.5 - error * 0.12);
-
-        //         if (System.currentTimeMillis() - startTime > 2500) {
-        //             drivetrain.tankdrive.driveVolts(0, 0);
-        //             step++;
-        //         }
-
-        //         break;
-        //     default:
-        //         finished = true;
-        // }
+    void outer() {
+        double[] voltages = instructions[instructionIndex];
+        for (int i = 0; i < voltages.length; i++) {
+            //components.get(i).setVoltage(voltages[i]);
+            components.get(i).set(ControlMode.PercentOutput, voltages[i]);
+        }
+        drivetrain.swervedrive.alignMotors(FORWARDS);
+        instructionIndex++;
+        if (instructionIndex >= instructions.length) {
+            finished = true;
+        }
     }
 
     @Override
     public void end(boolean interrupted) {
-        step = 0;
+        instructionIndex = 0;
         finished = false;
     }
 

@@ -28,6 +28,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         return elevatorMotor.getSelectedSensorPosition();
     }
 
+    public boolean isPastMaxUnextendedPosition() {
+        return getPosition() >= ELEVATOR_MAX_UNEXTENDED_POSITION;
+    }
+
     public void setVoltage(ArmSubsystem arm, double volts) {
         double pos = getPosition();
         
@@ -48,6 +52,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void setVoltageUnsafe(double volts) {
         elevatorMotor.setVoltage(volts);
+    }
+
+    public void stop() {
+        setVoltageUnsafe(0);
     }
 
     @Override

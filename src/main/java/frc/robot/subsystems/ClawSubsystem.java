@@ -8,8 +8,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static edu.wpi.first.wpilibj.DoubleSolenoid.Value.*;
 
 public class ClawSubsystem extends SubsystemBase {
-    private final DoubleSolenoid rotateSolenoid;
-    private final DoubleSolenoid grabSolenoid;
+    public final DoubleSolenoid rotateSolenoid;
+    public final DoubleSolenoid grabSolenoid;
 
     public ClawSubsystem(PneumaticHub hub, int[] solenoid1, int[] solenoid2) {
         rotateSolenoid = hub.makeDoubleSolenoid(solenoid1[0], solenoid1[1]);
