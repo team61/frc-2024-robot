@@ -5,13 +5,16 @@
 package frc.robot;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
+import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
@@ -20,6 +23,8 @@ import lib.components.LogitechJoystick;
 
 import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
+
+import java.util.ArrayList;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -33,12 +38,37 @@ import com.kauailabs.navx.frc.AHRS;
  * project.
  */
 public class Robot extends TimedRobot {
-    private final int[][] colors = {{255, 0, 0}, {255, 32, 0}, {255, 128, 0}, {0, 255, 0}, {0, 0, 255}, {255, 0, 255}};
+    private final int[][] colors = {
+        { 255, 0, 0 },
+        { 255, 32, 0 },
+        { 255, 128, 0 },
+        { 0, 255, 0 },
+        { 0, 0, 255 },
+        { 255, 0, 255 },
+    };
+    private final int[][] reds = {
+        { 255, 0, 0 },
+        { 255, 64, 0 },
+        { 255, 128, 0 },
+        { 255, 196, 0 },
+        { 255, 255, 0 },
+        { 255, 255, 255 },
+    };
+    private final int[][] blues = {
+        { 0, 0, 255 },
+        { 0, 64, 255 },
+        { 0, 128, 255 },
+        { 0, 196, 255 },
+        { 0, 255, 255 },
+        { 255, 255, 255 },
+    };
+    private int[][] teamColors = colors;
     private double colorOffset = 0;
     private RobotContainer robotContainer;
     private DriveTrain drivetrain;
     private ElevatorSubsystem elevator;
     private ArmSubsystem arm;
+    private ClawSubsystem claw;
     private AHRS gyro;
     private BalancingSubsystem balancingSubsystem;
     private LEDStripSubsystem ledStrip;
@@ -46,6 +76,7 @@ public class Robot extends TimedRobot {
     private Command autoCommand;
     private SendableChooser<String> autoChooser;
     private long teleopStartTime;
+    private final ArrayList<Object> components = new ArrayList<>();
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -58,6 +89,7 @@ public class Robot extends TimedRobot {
         drivetrain = robotContainer.getDriveTrain();
         elevator = robotContainer.getElevator();
         arm = robotContainer.getArm();
+        claw = robotContainer.getClaw();
         gyro = robotContainer.getGyro();
         balancingSubsystem = robotContainer.getBalancer();
         ledStrip = robotContainer.getLEDStrip();
@@ -71,6 +103,14 @@ public class Robot extends TimedRobot {
         autoChooser.setDefaultOption(MIDDLE, MIDDLE);
         autoChooser.addOption(OUTER, OUTER);
         SmartDashboard.putData("Auto Selector", autoChooser);
+
+        for (var swerveUnit : drivetrain.swervedrive.swerveMotors) {
+            components.add(swerveUnit.directionMotor);
+            components.add(swerveUnit.wheelMotor);
+        }
+        components.add(elevator.elevatorMotor);
+        components.add(arm.armMotor);
+        components.add(claw);
     }
 
     /**
@@ -86,6 +126,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
+        SmartDashboard.putNumber("Gyro", gyro.getFusedHeading());
 
         // System.out.println(gyro.getRate());
         // System.out.println("elevator: " + elevator.getPosition() + ", arm: " + arm.getPosition() + ", limit: " + arm.limitSwitch.get());
@@ -115,8 +156,9 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-        drivetrain.swervedrive.disableBreaks();
+        drivetrain.swervedrive.disableWheelBreaks();
 
+        teamColors = DriverStation.getAlliance() == Alliance.Red ? reds : blues;
         autoCommand.schedule();
     }
 
@@ -124,7 +166,7 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousPeriodic() {
         for (int i = 0; i < ledStrip.getLength(); i++) {
-            int[] color = colors[(int)(i + colorOffset) % colors.length];
+            int[] color = teamColors[(int)(i + colorOffset) % teamColors.length];
             ledStrip.setRGB(i, color[0], color[1], color[2]);
         }
         colorOffset += 0.2;
@@ -134,11 +176,12 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         autoCommand.cancel();
-        drivetrain.swervedrive.enableBreaks();
+        drivetrain.disableWheelBreaks();
         robotContainer.pneumaticHub.enableCompressorDigital();
         teleopStartTime = System.currentTimeMillis();
+        balancingSubsystem.disable();
         CURRENT_DIRECTIONS = new String[] { FORWARDS, FORWARDS, FORWARDS, FORWARDS };
-        IS_ROTATING = true;
+        IS_ROTATING = false;
     }
 
     /** This function is called periodically during operator control. */
@@ -230,20 +273,13 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledInit() {
         ledStrip.off();
-        drivetrain.swervedrive.disableBreaks();
+        drivetrain.swervedrive.disableWheelBreaks();
         balancingSubsystem.disable();
     }
     
     /** This function is called periodically when disabled. */
     @Override
     public void disabledPeriodic() {
-        // System.out.print(gyro.getAngle() + "   ");
-        // System.out.print(gyro.getRate() + "   ");
-        // System.out.print(gyro.getRoll() + "   ");
-        // System.out.print(gyro.getPitch() + "   ");
-        // System.out.print(gyro.getYaw() + "   ");
-        // System.out.print(gyro.getCompassHeading() + "   ");
-        // System.out.println();
         if (robotContainer.joystick3.getRawAxis(3) > 0) {
             for (int i = 0; i < ledStrip.getLength(); i++) {
                 if (Math.floor((i + colorOffset) / 7) % 2 == 0) {

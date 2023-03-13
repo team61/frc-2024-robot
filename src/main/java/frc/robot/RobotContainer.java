@@ -8,6 +8,7 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.commands.AlignMotorsCommand;
 import frc.robot.commands.AutonomousCommand;
 import frc.robot.commands.GrabCommand;
@@ -15,6 +16,7 @@ import frc.robot.commands.GrabGamePieceCommand;
 import frc.robot.commands.IndividualWheelRotationCommand;
 import frc.robot.commands.RotateClawCommand;
 import frc.robot.commands.SetDriveModeCommand;
+import frc.robot.commands.ToggleBalancingCommand;
 import frc.robot.commands.ZeroOutArmCommand;
 import frc.robot.commands.ZeroOutElevatorCommand;
 import frc.robot.commands.ZeroOutMotorsCommand;
@@ -70,7 +72,7 @@ public class RobotContainer {
 	
 	private final DatabaseSubsystem db = new DatabaseSubsystem();
 
-	private final AutonomousCommand autoCommand = new AutonomousCommand(drivetrain, gyro, elevator, arm, claw, db);
+	private final AutonomousCommand autoCommand = new AutonomousCommand(drivetrain, gyro, elevator, arm, claw, balancingSubsystem);
 
 	public RobotContainer() {
 		configureButtonBindings();
@@ -80,6 +82,8 @@ public class RobotContainer {
 		joystick1.btn_1
 				.onTrue(new SetDriveModeCommand(drivetrain, TANK_DRIVE))
 				.onFalse(new SetDriveModeCommand(drivetrain, SWERVE_DRIVE));
+		joystick1.btn_2
+				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 
 		// joystick2.btn_1
 		// 		.onTrue(new ZeroYawCommand(gyro));
@@ -134,6 +138,10 @@ public class RobotContainer {
 
 	public ArmSubsystem getArm() {
 		return arm;
+	}
+
+	public ClawSubsystem getClaw() {
+		return claw;
 	}
 
 	public AHRS getGyro() {

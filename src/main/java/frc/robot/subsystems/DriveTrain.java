@@ -11,12 +11,20 @@ public class DriveTrain extends SubsystemBase {
     tankdrive = td;
   }
 
-  public void enableBreaks() {
-    swervedrive.enableBreaks();
+  // public void enableBreaks() {
+  //   swervedrive.enableBreaks();
+  // }
+
+  // public void disableBreaks() {
+  //   swervedrive.disableBreaks();
+  // }
+
+  public void enableWheelBreaks() {
+    swervedrive.enableWheelBreaks();
   }
 
-  public void disableBreaks() {
-    swervedrive.disableBreaks();
+  public void disableWheelBreaks() {
+    swervedrive.disableWheelBreaks();
   }
 
   @Override

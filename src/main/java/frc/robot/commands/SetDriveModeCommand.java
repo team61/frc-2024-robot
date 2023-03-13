@@ -18,9 +18,7 @@ public class SetDriveModeCommand extends CommandBase {
     }
 
     @Override
-    public void initialize() {
-        drivetrain.disableBreaks();
-    }
+    public void initialize() {}
 
     @Override
     public void execute() {
@@ -28,9 +26,7 @@ public class SetDriveModeCommand extends CommandBase {
     }
 
     @Override
-    public void end(boolean interrupted) {
-        drivetrain.enableBreaks();
-    }
+    public void end(boolean interrupted) {}
 
     @Override
     public boolean isFinished() {

@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.*;
 
 public class SwerveMotorsSubsystem extends SubsystemBase {
-    private final WPI_TalonFX wheelMotor;
+    public final WPI_TalonFX wheelMotor;
     public final WPI_TalonFX directionMotor;
     private CANCoder encoder;
 
@@ -21,6 +21,8 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
         directionMotor = new WPI_TalonFX(directionMotorID);
         encoder = new CANCoder(encoderID);
 
+        wheelMotor.setNeutralMode(NeutralMode.Coast);
+        directionMotor.setNeutralMode(NeutralMode.Coast);
         encoder.configMagnetOffset(offset);
         encoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
         
@@ -70,14 +72,22 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
         wheelMotor.setVoltage(0);
     }
 
-    public void enableBreaks() {
+    // public void enableBreaks() {
+    //     wheelMotor.setNeutralMode(NeutralMode.Brake);
+    //     directionMotor.setNeutralMode(NeutralMode.Brake);
+    // }
+
+    // public void disableBreaks() {
+    //     wheelMotor.setNeutralMode(NeutralMode.Coast);
+    //     directionMotor.setNeutralMode(NeutralMode.Coast);
+    // }
+    
+    public void enableWheelBreaks() {
         wheelMotor.setNeutralMode(NeutralMode.Brake);
-        directionMotor.setNeutralMode(NeutralMode.Brake);
     }
 
-    public void disableBreaks() {
+    public void disableWheelBreaks() {
         wheelMotor.setNeutralMode(NeutralMode.Coast);
-        directionMotor.setNeutralMode(NeutralMode.Coast);
     }
     
     public void zeroOutRotation() {

@@ -36,12 +36,20 @@ public class ClawSubsystem extends SubsystemBase {
         rotateSolenoid.set(kReverse);
     }
 
+    public boolean isUp() {
+        return rotateSolenoid.get() == kReverse;
+    }
+
     public void close() {
         grabSolenoid.set(kForward);
     }
 
     public void open() {
         grabSolenoid.set(kReverse);
+    }
+
+    public boolean isClosed() {
+        return grabSolenoid.get() == kForward;
     }
 
     public void toggleRotation() {

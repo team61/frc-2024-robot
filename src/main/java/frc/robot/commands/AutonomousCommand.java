@@ -3,6 +3,7 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
@@ -18,21 +19,21 @@ public class AutonomousCommand extends CommandBase {
     private final ElevatorSubsystem elevator;
     private final ArmSubsystem arm;
     private final ClawSubsystem claw;
-    private final DatabaseSubsystem db;
+    private final BalancingSubsystem balancer;
     private int step;
     private long startTime;
     private String autoMode = MIDDLE;
     private boolean finished = false;
 
-    public AutonomousCommand(DriveTrain dt, AHRS g, ElevatorSubsystem e, ArmSubsystem a, ClawSubsystem c, DatabaseSubsystem dbs) {
+    public AutonomousCommand(DriveTrain dt, AHRS g, ElevatorSubsystem e, ArmSubsystem a, ClawSubsystem c, BalancingSubsystem b) {
         drivetrain = dt;
         gyro = g;
         elevator = e;
         arm = a;
         claw = c;
-        db = dbs;
+        balancer = b;
 
-        addRequirements(dt, e, a, c, dbs);
+        addRequirements(dt, e, a, c, b);
     }
 
     @Override
@@ -93,7 +94,7 @@ public class AutonomousCommand extends CommandBase {
                 if (autoMode.equals(MIDDLE)) {
                     drivetrain.tankdrive.driveSpeed(0.35 + error * 0.25, 0.35 - error * 0.27);
 
-                    if (System.currentTimeMillis() - startTime > 2800) {
+                    if (System.currentTimeMillis() - startTime > 2600) {
                         drivetrain.tankdrive.driveVolts(0, 0);
                         startTime = System.currentTimeMillis();
                         step++;
@@ -112,9 +113,11 @@ public class AutonomousCommand extends CommandBase {
 
                 break;
             case 6:
-                drivetrain.swervedrive.alignMotors(DIAGONAL);
+                // drivetrain.swervedrive.alignMotors(DIAGONAL);
+                balancer.enable();
+                drivetrain.enableWheelBreaks();
 
-                if (System.currentTimeMillis() - startTime > 2000) {
+                if (System.currentTimeMillis() - startTime > 10000) {
                     step++;
                 }
                 break;

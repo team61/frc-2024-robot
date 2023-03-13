@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -11,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.*;
 
 public class ElevatorSubsystem extends SubsystemBase {
-    private final WPI_TalonFX elevatorMotor;
+    public final WPI_TalonFX elevatorMotor;
 
     public ElevatorSubsystem(int motorID) {
         elevatorMotor = new WPI_TalonFX(motorID);

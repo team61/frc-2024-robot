@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.*;
 
 public class ArmSubsystem extends SubsystemBase {
-    private final WPI_TalonFX armMotor;
+    public final WPI_TalonFX armMotor;
     public final DigitalInput limitSwitch;
 
     public ArmSubsystem(int motorID, int limitSwitchPort) {

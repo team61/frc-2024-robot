@@ -2,16 +2,14 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import static frc.robot.Constants.*;
-
 import com.kauailabs.navx.frc.AHRS;
+
+import static frc.robot.Constants.*;
 
 public class BalancingSubsystem extends SubsystemBase {
     private final AHRS gyro;
     private final DriveTrain drivetrain;
     private boolean enabled = false;
-    private double previousRoll = 0;
-    private double currentRoll = 0;
 
     public BalancingSubsystem(AHRS g, DriveTrain dt) {
         gyro = g;
@@ -20,12 +18,12 @@ public class BalancingSubsystem extends SubsystemBase {
 
     public void enable() {
         enabled = true;
-        drivetrain.disableBreaks();
+        drivetrain.disableWheelBreaks();
     }
 
     public void disable() {
         enabled = false;
-        drivetrain.enableBreaks();
+        drivetrain.enableWheelBreaks();
     }
 
     public boolean isEnabled() {
@@ -44,11 +42,10 @@ public class BalancingSubsystem extends SubsystemBase {
         //     drivetrain.tankdrive.driveVolts(volts, volts);
         // }
         
-        previousRoll = currentRoll;
-        currentRoll = gyro.getRoll();
-        double rollRate = currentRoll - previousRoll;
-        double speed = -rollRate / 4;
+        double pitch = Math.round(gyro.getPitch() / 5) * 5;
+        double speed = -pitch * 0.0085;
         double error = gyro.getRate();
         drivetrain.tankdrive.driveSpeed(speed + error * Math.abs(error / 4), speed - error * Math.abs(error));
+        drivetrain.swervedrive.alignMotors(FORWARDS);
     }
 }

@@ -37,15 +37,27 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         }
     }
 
-    public void enableBreaks() {
+    // public void enableBreaks() {
+    //     for (SwerveMotorsSubsystem swerveUnit : swerveMotors) {
+    //         swerveUnit.enableBreaks();
+    //     }
+    // }
+
+    // public void disableBreaks() {
+    //     for (SwerveMotorsSubsystem swerveUnit : swerveMotors) {
+    //         swerveUnit.disableBreaks();
+    //     }
+    // }
+
+    public void enableWheelBreaks() {
         for (SwerveMotorsSubsystem swerveUnit : swerveMotors) {
-            swerveUnit.enableBreaks();
+            swerveUnit.enableWheelBreaks();
         }
     }
 
-    public void disableBreaks() {
+    public void disableWheelBreaks() {
         for (SwerveMotorsSubsystem swerveUnit : swerveMotors) {
-            swerveUnit.disableBreaks();
+            swerveUnit.disableWheelBreaks();
         }
     }
 

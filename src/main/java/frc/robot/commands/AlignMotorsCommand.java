@@ -39,7 +39,7 @@ public class AlignMotorsCommand extends CommandBase {
     
     @Override
     public void initialize() {
-        swervedrive.disableBreaks();
+        // swervedrive.disableBreaks();
         startTime = System.currentTimeMillis();
         if (directions[0] == DIAGONAL) {
             IS_ROTATING = true;
@@ -58,7 +58,7 @@ public class AlignMotorsCommand extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
-        swervedrive.enableBreaks();
+        // swervedrive.enableBreaks();
         swervedrive.setRotationVoltage(0);
         finished = false;
     }
