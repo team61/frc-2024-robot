@@ -24,9 +24,13 @@ import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 
 /**
@@ -61,8 +65,10 @@ public class Robot extends TimedRobot {
     private Command autoCommand;
     private SendableChooser<String> autoChooser;
     private long teleopStartTime;
-    public static final ArrayList<WPI_TalonFX> components = new ArrayList<>();
-    private ArrayList<double[]> recording = new ArrayList<>();
+    public static final ArrayList<DoubleSupplier> joystickAxes = new ArrayList<>();
+    public static final ArrayList<BooleanSupplier> joystickButtons = new ArrayList<>();
+    private ArrayList<double[]> recordingAxes = new ArrayList<>();
+    private ArrayList<boolean[]> recordingButtons = new ArrayList<>();
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -90,14 +96,23 @@ public class Robot extends TimedRobot {
         autoChooser.addOption(OUTER, OUTER);
         SmartDashboard.putData("Auto Selector", autoChooser);
 
-        for (var swerveUnit : drivetrain.swervedrive.swerveMotors) {
-            // components.add(swerveUnit.directionMotor);
-            components.add(swerveUnit.wheelMotor);
-        }
-        components.add(elevator.elevatorMotor);
-        components.add(arm.armMotor);
-        // components.add(claw.rotateSolenoid);
-        // components.add(claw.grabSolenoid);
+        LogitechJoystick joystick1 = robotContainer.joystick1;
+        LogitechJoystick joystick2 = robotContainer.joystick2;
+        LogitechJoystick joystick3 = robotContainer.joystick3;
+        LogitechJoystick joystick4 = robotContainer.joystick4;
+        joystickAxes.add(() -> { return joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15)); });
+        joystickAxes.add(() -> { return joystick2.getYAxis(0.15) * Math.abs(joystick2.getYAxis(0.15)); });
+        joystickAxes.add(() -> { return joystick2.getZAxis(0.05); });
+        joystickAxes.add(() -> { return joystick3.getYAxis(0.15); });
+        joystickAxes.add(() -> { return joystick4.getYAxis(0.15); });
+        joystickButtons.add(joystick1.btn_1);
+        joystickButtons.add(joystick3.btn_1);
+        joystickButtons.add(joystick3.btn_2);
+        joystickButtons.add(joystick4.btn_1);
+        joystickButtons.add(joystick4.btn_2);
+        joystickButtons.add(joystick2.btn_1);
+        joystickButtons.add(joystick2.btn_3.or(joystick2.btn_5));
+        joystickButtons.add(joystick2.btn_4.or(joystick2.btn_6));
     }
 
     /**
@@ -180,6 +195,8 @@ public class Robot extends TimedRobot {
         balancingSubsystem.disable();
         CURRENT_DIRECTIONS = new String[] { FORWARDS, FORWARDS, FORWARDS, FORWARDS };
         IS_ROTATING = false;
+        recordingAxes = new ArrayList<>();
+        recordingButtons = new ArrayList<>();
     }
 
     /** This function is called periodically during operator control. */
@@ -191,7 +208,7 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick4 = robotContainer.joystick4;
 
         if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
-            double speed = joystick1.getYAxis() * Math.abs(joystick1.getYAxis(0.15));
+            double speed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
             double rotationVoltage = -joystick2.getZAxis(0.05) * MAX_ROTATION_VOLTAGE;
             
             if (joystick1.btn_2.getAsBoolean()) {
@@ -252,12 +269,18 @@ public class Robot extends TimedRobot {
         }
 
         if (IS_RECORDING) {
-            double[] data = new double[components.size()];
-            for (int i = 0; i < data.length; i++) {
-                //data[i] = components.get(i).getMotorOutputVoltage();
-                data[i] = components.get(i).getMotorOutputPercent();
+            double[] axes = new double[joystickAxes.size()];
+            boolean[] buttons = new boolean[joystickButtons.size()];
+
+            for (int i = 0; i < axes.length; i++) {
+                axes[i] = joystickAxes.get(i).getAsDouble();
             }
-            recording.add(data);
+            recordingAxes.add(axes);
+
+            for (int i = 0; i < buttons.length; i++) {
+                buttons[i] = joystickButtons.get(i).getAsBoolean();
+            }
+            recordingButtons.add(buttons);
         }
 
         double timeElapsed = (System.currentTimeMillis() - teleopStartTime) / 1000.0;
@@ -284,19 +307,84 @@ public class Robot extends TimedRobot {
         balancingSubsystem.disable();
         IS_RECORDING = false;
 
-        if (recording.size() > 0) {
+        if (recordingAxes.size() > 0) {
             new Thread(() -> {
-                System.out.print("\n\n\n\n\n\npublic static double[][] voltages=new double[][]{");
-                for (double[] data : recording) {
-                    System.out.print("new double[]{");
-                    for (double voltage : data) {
-                        System.out.print(voltage + ",");
+                File f;
+                PrintWriter pw;
+
+                f = new File("/home/lvuser/recording-" + System.currentTimeMillis() + ".json");
+                try {
+                    if (!f.exists()) {
+                        f.createNewFile();
+                    } else if (f.delete()) {
+                        f.createNewFile();
                     }
-                    System.out.print("},");
+                    pw = new PrintWriter(f);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
                 }
-                System.out.println("};\n\n\n\n\n\n");
-                recording = new ArrayList<>();
+                
+                pw.print("{\"axes\":[");
+                for (int i = 0; i < recordingAxes.size(); i++) {
+                    double[] data = recordingAxes.get(i);
+                    pw.print("[");
+                    for (int j = 0; j < data.length; j++) {
+                        double axis = data[j];
+                        pw.print(axis + (j < data.length - 1 ? "," : ""));
+                    }
+                    pw.print("]" + (i < recordingAxes.size() - 1 ? "," : ""));
+                }
+                pw.print("],\"buttons\":[");
+                for (int i = 0; i < recordingButtons.size(); i++) {
+                    boolean[] data = recordingButtons.get(i);
+                    pw.print("[");
+                    for (int j = 0; j < data.length; j++) {
+                        boolean btn = data[j];
+                        pw.print(btn + (j < data.length - 1 ? "," : ""));
+                    }
+                    pw.print("]" + (i < recordingButtons.size() - 1 ? "," : ""));
+                }
+                pw.print("]}");
+                pw.close();
             }).start();
+            // new Thread(() -> {
+            //     File f;
+            //     PrintWriter pw;
+
+            //     f = new File("/home/lvuser/recording-" + System.currentTimeMillis() + ".txt");
+            //     try {
+            //         if (!f.exists()) {
+            //             f.createNewFile();
+            //         } else if (f.delete()) {
+            //             f.createNewFile();
+            //         }
+            //         pw = new PrintWriter(f);
+            //     } catch (IOException e) {
+            //         e.printStackTrace();
+            //         return;
+            //     }
+                
+            //     pw.print("public static double[][] axes=new double[][]{");
+            //     for (double[] data : recordingAxes) {
+            //         pw.print("new double[]{");
+            //         for (double axis : data) {
+            //             pw.print(axis + ",");
+            //         }
+            //         pw.print("},");
+            //     }
+            //     pw.print("};public static boolean[][] buttons=new boolean[][]{");
+            //     for (boolean[] data : recordingButtons) {
+            //         pw.print("new boolean[]{");
+            //         for (boolean btn : data) {
+            //             pw.print(btn + ",");
+            //         }
+            //         pw.print("},");
+            //     }
+            //     pw.print("};");
+
+            //     pw.close();
+            // }).start();
         }
     }
     
