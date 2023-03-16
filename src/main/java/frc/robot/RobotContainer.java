@@ -4,6 +4,9 @@ import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.PneumaticHub;
@@ -12,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.commands.AlignMotorsCommand;
 import frc.robot.commands.AutonomousCommand;
+import frc.robot.commands.DriveCommand;
 import frc.robot.commands.GrabCommand;
 import frc.robot.commands.GrabGamePieceCommand;
 import frc.robot.commands.IndividualWheelRotationCommand;
@@ -28,6 +32,7 @@ import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LEDStripSubsystem;
+import frc.robot.subsystems.OldSwerveDriveSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.subsystems.TankDriveSubsystem;
 
@@ -37,7 +42,7 @@ public class RobotContainer {
 	public final LogitechJoystick joystick3 = new LogitechJoystick(joystickPort3);
 	public final LogitechJoystick joystick4 = new LogitechJoystick(joystickPort4);
 
-	private final SwerveDriveSubsystem swervedrive = new SwerveDriveSubsystem(4, new int[] {
+	private final OldSwerveDriveSubsystem swervedrive = new OldSwerveDriveSubsystem(4, new int[] {
 			19, 18,
 			11, 10,
 			9, 8,
@@ -70,12 +75,23 @@ public class RobotContainer {
 	private final DriveTrain drivetrain = new DriveTrain(swervedrive, tankdrive);
 	private final AHRS gyro = new AHRS(Port.kMXP);
 	private final BalancingSubsystem balancingSubsystem = new BalancingSubsystem(gyro, drivetrain);
+	private final SwerveDriveSubsystem swerve = new SwerveDriveSubsystem(gyro);
 	
 	private final DatabaseSubsystem db = new DatabaseSubsystem();
 
 	private final AutonomousCommand autoCommand = new AutonomousCommand(drivetrain, gyro, elevator, arm, claw, balancingSubsystem);
 
 	public RobotContainer() {
+		swerve.setDefaultCommand(
+            new DriveCommand(
+                swerve, 
+                (DoubleSupplier)() -> -joystick1.getYAxis(), 
+                (DoubleSupplier)() -> -joystick1.getXAxis(), 
+                (DoubleSupplier)() -> -joystick2.getXAxis(), 
+                (BooleanSupplier)() -> joystick1.btn_2.getAsBoolean()
+            )
+        );
+
 		configureButtonBindings();
 	}
 
@@ -83,8 +99,8 @@ public class RobotContainer {
 		joystick1.btn_1
 				.onTrue(new SetDriveModeCommand(drivetrain, TANK_DRIVE))
 				.onFalse(new SetDriveModeCommand(drivetrain, SWERVE_DRIVE));
-		joystick1.btn_2
-				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
+		// joystick1.btn_2
+		// 		.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 
 		// joystick2.btn_1
 		// 		.onTrue(new ZeroYawCommand(gyro));
@@ -129,7 +145,7 @@ public class RobotContainer {
 				.onTrue(new ZeroOutArmCommand(arm));
 		joystick4.btn_11
 				.and(joystick4.btn_12)
-				.onTrue(new InstantCommand(() -> { IS_RECORDING = true; }));
+				.onTrue(new InstantCommand(() -> { IS_RECORDING = true; USE_OLD_SWERVE_DRIVE = true; }));
 	}
 
 	public DriveTrain getDriveTrain() {

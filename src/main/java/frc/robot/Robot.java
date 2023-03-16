@@ -160,6 +160,7 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         drivetrain.swervedrive.disableWheelBreaks();
         team = DriverStation.getAlliance();
+        USE_OLD_SWERVE_DRIVE = true;
 
         autoCommand.schedule();
     }
@@ -195,6 +196,7 @@ public class Robot extends TimedRobot {
         balancingSubsystem.disable();
         CURRENT_DIRECTIONS = new String[] { FORWARDS, FORWARDS, FORWARDS, FORWARDS };
         IS_ROTATING = false;
+        USE_OLD_SWERVE_DRIVE = false;
         recordingAxes = new ArrayList<>();
         recordingButtons = new ArrayList<>();
     }
@@ -207,45 +209,48 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick3 = robotContainer.joystick3;
         LogitechJoystick joystick4 = robotContainer.joystick4;
 
-        if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
-            double speed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
-            double rotationVoltage = -joystick2.getZAxis(0.05) * MAX_ROTATION_VOLTAGE;
-            
-            if (joystick1.btn_2.getAsBoolean()) {
-                speed *= SLOWDOWN_COEFFICIENT;
-            }
+        USE_OLD_SWERVE_DRIVE = joystick1.getRawAxis(3) > 0 || IS_RECORDING;
+        if (USE_OLD_SWERVE_DRIVE) {
+            if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
+                double speed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
+                double rotationVoltage = -joystick2.getZAxis(0.05) * MAX_ROTATION_VOLTAGE;
+                
+                if (joystick1.btn_2.getAsBoolean()) {
+                    speed *= SLOWDOWN_COEFFICIENT;
+                }
 
-            if (joystick2.btn_2.getAsBoolean()) {
-                rotationVoltage *= SLOWDOWN_COEFFICIENT;
-            }
+                if (joystick2.btn_2.getAsBoolean()) {
+                    rotationVoltage *= SLOWDOWN_COEFFICIENT;
+                }
 
-            double error = 0;
-            if (CURRENT_DIRECTIONS[0].equals(FORWARDS)) {
-                error = gyro.getRate();
-            }
-            drivetrain.tankdrive.driveSpeed(speed + error * Math.abs(error / 4), speed - error * Math.abs(error));
-            drivetrain.swervedrive.setRotationVoltage(rotationVoltage);
-            if (!IS_ROTATING && -joystick2.getZAxis(0.05) == 0) {
-                drivetrain.swervedrive.alignMotors(MIDDLE);
-            } else if (IS_ROTATING) {
-                drivetrain.swervedrive.alignMotors(DIAGONAL);
-            }
-        } else {
-            double lSpeed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
-            double rSpeed = joystick2.getYAxis(0.15) * Math.abs(joystick2.getYAxis(0.15));
+                double error = 0;
+                if (CURRENT_DIRECTIONS[0].equals(FORWARDS)) {
+                    error = gyro.getRate();
+                }
+                drivetrain.tankdrive.driveSpeed(speed + error * Math.abs(error / 4), speed - error * Math.abs(error));
+                drivetrain.swervedrive.setRotationVoltage(rotationVoltage);
+                if (!IS_ROTATING && -joystick2.getZAxis(0.05) == 0) {
+                    drivetrain.swervedrive.alignMotors(MIDDLE);
+                } else if (IS_ROTATING) {
+                    drivetrain.swervedrive.alignMotors(DIAGONAL);
+                }
+            } else {
+                double lSpeed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
+                double rSpeed = joystick2.getYAxis(0.15) * Math.abs(joystick2.getYAxis(0.15));
 
-            if (joystick1.btn_2.getAsBoolean() || joystick2.btn_2.getAsBoolean()) {
-                lSpeed *= SLOWDOWN_COEFFICIENT;
-                rSpeed *= SLOWDOWN_COEFFICIENT;
-            }
+                if (joystick1.btn_2.getAsBoolean() || joystick2.btn_2.getAsBoolean()) {
+                    lSpeed *= SLOWDOWN_COEFFICIENT;
+                    rSpeed *= SLOWDOWN_COEFFICIENT;
+                }
 
-            if (Math.abs(lSpeed) > 0.2 && Math.abs(rSpeed) > 0.2) {
-                double error = gyro.getRate();
-                lSpeed = lSpeed + error * Math.abs(error / 4);
-                rSpeed = rSpeed - error * Math.abs(error);
+                if (Math.abs(lSpeed) > 0.2 && Math.abs(rSpeed) > 0.2) {
+                    double error = gyro.getRate();
+                    lSpeed = lSpeed + error * Math.abs(error / 4);
+                    rSpeed = rSpeed - error * Math.abs(error);
+                }
+                drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
+                drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
             }
-            drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
-            drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
         }
 
         double elevatorSpeed = joystick3.getYAxis(0.15);

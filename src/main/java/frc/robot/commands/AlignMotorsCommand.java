@@ -1,19 +1,19 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.SwerveDriveSubsystem;
+import frc.robot.subsystems.OldSwerveDriveSubsystem;
 
 import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
 
 public class AlignMotorsCommand extends CommandBase {
-    private final SwerveDriveSubsystem swervedrive;
+    private final OldSwerveDriveSubsystem swervedrive;
     private final String[] directions;
     private final int maxTime;
     private long startTime;
     private boolean finished = false;
 
-    public AlignMotorsCommand(SwerveDriveSubsystem sd, int maxMillis, String dir1, String dir2, String dir3, String dir4) {
+    public AlignMotorsCommand(OldSwerveDriveSubsystem sd, int maxMillis, String dir1, String dir2, String dir3, String dir4) {
         swervedrive = sd;
         directions = new String[] { dir1, dir2, dir3, dir4 };
         maxTime = maxMillis;
@@ -21,7 +21,7 @@ public class AlignMotorsCommand extends CommandBase {
         addRequirements(sd);
     }
 
-    public AlignMotorsCommand(SwerveDriveSubsystem sd, String dir, int maxMillis) {
+    public AlignMotorsCommand(OldSwerveDriveSubsystem sd, String dir, int maxMillis) {
         swervedrive = sd;
         directions = new String[] { dir, dir, dir, dir };
         maxTime = maxMillis;
@@ -29,7 +29,7 @@ public class AlignMotorsCommand extends CommandBase {
         addRequirements(sd);
     }
 
-    public AlignMotorsCommand(SwerveDriveSubsystem sd, String dir) {
+    public AlignMotorsCommand(OldSwerveDriveSubsystem sd, String dir) {
         swervedrive = sd;
         directions = new String[] { dir, dir, dir, dir };
         maxTime = 500;
@@ -39,6 +39,7 @@ public class AlignMotorsCommand extends CommandBase {
     
     @Override
     public void initialize() {
+        if (!USE_OLD_SWERVE_DRIVE) return;
         // swervedrive.disableBreaks();
         startTime = System.currentTimeMillis();
         if (directions[0] == DIAGONAL) {
@@ -50,6 +51,11 @@ public class AlignMotorsCommand extends CommandBase {
 
     @Override
     public void execute() {
+        if (!USE_OLD_SWERVE_DRIVE) {
+            finished = true;
+            return;
+        }
+
         CURRENT_DIRECTIONS = directions;
         if (CURRENT_DRIVE_MODE == TANK_DRIVE) return;
         

@@ -1,14 +1,14 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.SwerveDriveSubsystem;
+import frc.robot.subsystems.OldSwerveDriveSubsystem;
 
 public class IndividualWheelRotationCommand extends CommandBase {
-    private final SwerveDriveSubsystem swervedrive;
+    private final OldSwerveDriveSubsystem swervedrive;
     private final int index;
     private final double volts;
 
-    public IndividualWheelRotationCommand(SwerveDriveSubsystem sd, int i, double v) {
+    public IndividualWheelRotationCommand(OldSwerveDriveSubsystem sd, int i, double v) {
         swervedrive = sd;
         index = i;
         volts = v;

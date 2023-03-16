@@ -11,12 +11,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.*;
 
-public class SwerveMotorsSubsystem extends SubsystemBase {
+public class OldSwerveMotorsSubsystem extends SubsystemBase {
     public final WPI_TalonFX wheelMotor;
     public final WPI_TalonFX directionMotor;
     private CANCoder encoder;
 
-    public SwerveMotorsSubsystem(int wheelMotorID, int directionMotorID, int encoderID, double offset) {
+    public OldSwerveMotorsSubsystem(int wheelMotorID, int directionMotorID, int encoderID, double offset) {
         wheelMotor = new WPI_TalonFX(wheelMotorID);
         directionMotor = new WPI_TalonFX(directionMotorID);
         encoder = new CANCoder(encoderID);
@@ -32,7 +32,7 @@ public class SwerveMotorsSubsystem extends SubsystemBase {
         encoder.setPosition(pos);
     }
 
-    public SwerveMotorsSubsystem(int wheelMotorID, int directionMotorID) {
+    public OldSwerveMotorsSubsystem(int wheelMotorID, int directionMotorID) {
         wheelMotor = new WPI_TalonFX(wheelMotorID);
         directionMotor = new WPI_TalonFX(directionMotorID);
     }

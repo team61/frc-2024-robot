@@ -2,13 +2,13 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.BalancingSubsystem;
-import frc.robot.subsystems.SwerveDriveSubsystem;
+import frc.robot.subsystems.OldSwerveDriveSubsystem;
 
 public class ToggleBalancingCommand extends CommandBase {
-    private final SwerveDriveSubsystem swervedrive;
+    private final OldSwerveDriveSubsystem swervedrive;
     private final BalancingSubsystem balancingSubsystem;
 
-    public ToggleBalancingCommand(SwerveDriveSubsystem sd, BalancingSubsystem balancer) {
+    public ToggleBalancingCommand(OldSwerveDriveSubsystem sd, BalancingSubsystem balancer) {
         swervedrive = sd;
         balancingSubsystem = balancer;
     }
