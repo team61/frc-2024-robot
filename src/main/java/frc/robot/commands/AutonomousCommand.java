@@ -16,6 +16,7 @@ import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.SwerveDriveSubsystem;
 
 import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
@@ -25,6 +26,7 @@ import java.util.function.BooleanSupplier;
 import com.kauailabs.navx.frc.AHRS;
 
 public class AutonomousCommand extends CommandBase {
+    private final SwerveDriveSubsystem swervedrive;
     private final DriveTrain drivetrain;
     private final AHRS gyro;
     private final ElevatorSubsystem elevator;
@@ -39,7 +41,8 @@ public class AutonomousCommand extends CommandBase {
     private String autoMode = MIDDLE;
     private boolean finished;
 
-    public AutonomousCommand(DriveTrain dt, AHRS g, ElevatorSubsystem e, ArmSubsystem a, ClawSubsystem c, BalancingSubsystem b) {
+    public AutonomousCommand(SwerveDriveSubsystem sd, DriveTrain dt, AHRS g, ElevatorSubsystem e, ArmSubsystem a, ClawSubsystem c, BalancingSubsystem b) {
+        swervedrive = sd;
         drivetrain = dt;
         gyro = g;
         elevator = e;
@@ -47,7 +50,7 @@ public class AutonomousCommand extends CommandBase {
         claw = c;
         balancer = b;
 
-        addRequirements(dt, e, a, c, b);
+        addRequirements(sd, dt, e, a, c, b);
 
         new OuterAuto();
         instructionsAxes = OuterAuto.axes;
@@ -96,14 +99,15 @@ public class AutonomousCommand extends CommandBase {
                                 new InstantCommand(() -> { elevator.setVoltage(arm, MAX_ELEVATOR_VOLTAGE); }),
                                 elevator::isPastMaxUnextendedPosition
                             ),
-                            new InstantCommand(() -> {
-                                double error = gyro.getRate();
-                                drivetrain.tankdrive.driveSpeed(0.4 + error * Math.abs(error / 4), 0.4 - error * Math.abs(error));
-                                drivetrain.swervedrive.alignMotors(FORWARDS);
-                            })
+                            new DriveCommand(
+                                swervedrive,
+                                () -> { return -0.5; },
+                                () -> { return 0; },
+                                () -> { return 0; },
+                                () -> { return true; })
                         )
                     ),
-                    new WaitCommand(2.8)
+                    new WaitCommand(2.9)
                 )
             ),
             new ParallelCommandGroup(
@@ -114,13 +118,14 @@ public class AutonomousCommand extends CommandBase {
             new WaitCommand(1),
             new ParallelRaceGroup(
                 new RepeatCommand(
-                    new InstantCommand(() -> {
-                        double error = gyro.getRate();
-                        drivetrain.tankdrive.driveSpeed(-0.4 + error * Math.abs(error / 4), -0.4 - error * Math.abs(error));
-                        drivetrain.swervedrive.alignMotors(FORWARDS);
-                    })
+                    new DriveCommand(
+                                swervedrive,
+                                () -> { return 0.5; },
+                                () -> { return 0; },
+                                () -> { return 0; },
+                                () -> { return true; })
                 ),
-                new WaitCommand(1.5)
+                new WaitCommand(1)
             ),
             new WaitCommand(1),
             new ToggleBalancingCommand(drivetrain.swervedrive, balancer)
@@ -129,6 +134,52 @@ public class AutonomousCommand extends CommandBase {
     }
 
     void outer() {
+        new SequentialCommandGroup(
+            new ParallelCommandGroup(
+                new InstantCommand(claw::close),
+                new InstantCommand(claw::rotateUp),
+                new InstantCommand(() -> { arm.setVoltage(elevator, -MAX_ARM_VOLTAGE); })
+            ),
+            new WaitUntilCommand((BooleanSupplier)arm::isFullyExtended),
+            new InstantCommand(arm::stop),
+            new WaitCommand(0.2),
+            new InstantCommand(claw::open),
+            new WaitCommand(0.5),
+            new ParallelCommandGroup(
+                new WaitCommand(0.5).andThen(claw::rotateDown),
+                new ParallelRaceGroup(
+                    new RepeatCommand(
+                        new ParallelCommandGroup(
+                            new ConditionalCommand(
+                                new InstantCommand(arm::stop),
+                                new InstantCommand(() -> { arm.setVoltage(elevator, MAX_ARM_VOLTAGE); }),
+                                arm::isFullyRetracted),
+                            new ConditionalCommand(
+                                new InstantCommand(elevator::stop),
+                                new InstantCommand(() -> { elevator.setVoltage(arm, MAX_ELEVATOR_VOLTAGE); }),
+                                elevator::isPastMaxUnextendedPosition
+                            ),
+                            new DriveCommand(
+                                swervedrive,
+                                () -> { return -0.5; },
+                                () -> { return 0; },
+                                () -> { return 0; },
+                                () -> { return true; })
+                        )
+                    ),
+                    new WaitCommand(1.5)
+                )
+            ),
+            new ParallelCommandGroup(
+                new InstantCommand(arm::stop),
+                new InstantCommand(elevator::stop),
+                new InstantCommand(drivetrain.tankdrive::stop)
+            )
+        ).schedule();
+        finished = true;
+    }
+
+    void rec() {
         // double[] voltages = instructions[instructionIndex];
         // for (int i = 0; i < voltages.length; i++) {
         //     // components.get(i).setVoltage(voltages[i]);

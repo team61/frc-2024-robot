@@ -14,8 +14,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
-import frc.robot.subsystems.ClawSubsystem;
-import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LEDStripSubsystem;
@@ -57,11 +55,11 @@ public class Robot extends TimedRobot {
     private DriveTrain drivetrain;
     private ElevatorSubsystem elevator;
     private ArmSubsystem arm;
-    private ClawSubsystem claw;
+    // private ClawSubsystem claw;
     private AHRS gyro;
     private BalancingSubsystem balancingSubsystem;
     private LEDStripSubsystem ledStrip;
-    private DatabaseSubsystem db;
+    // private DatabaseSubsystem db;
     private Command autoCommand;
     private SendableChooser<String> autoChooser;
     private long teleopStartTime;
@@ -81,11 +79,9 @@ public class Robot extends TimedRobot {
         drivetrain = robotContainer.getDriveTrain();
         elevator = robotContainer.getElevator();
         arm = robotContainer.getArm();
-        claw = robotContainer.getClaw();
         gyro = robotContainer.getGyro();
         balancingSubsystem = robotContainer.getBalancer();
         ledStrip = robotContainer.getLEDStrip();
-        db = robotContainer.getDatabase();
         autoCommand = robotContainer.getAutonomousCommand();
 
         gyro.zeroYaw();
@@ -160,7 +156,7 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         drivetrain.swervedrive.disableWheelBreaks();
         team = DriverStation.getAlliance();
-        USE_OLD_SWERVE_DRIVE = true;
+        // USE_OLD_SWERVE_DRIVE = true;
 
         autoCommand.schedule();
     }
@@ -168,7 +164,7 @@ public class Robot extends TimedRobot {
     /** This function is called periodically during autonomous. */
     @Override
     public void autonomousPeriodic() {
-        drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
+        // drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
 
         for (int i = 0; i < ledStrip.getLength(); i++) {
             int[] color = colors[(int)(i + colorOffset) % colors.length];
@@ -196,7 +192,7 @@ public class Robot extends TimedRobot {
         balancingSubsystem.disable();
         CURRENT_DIRECTIONS = new String[] { FORWARDS, FORWARDS, FORWARDS, FORWARDS };
         IS_ROTATING = false;
-        USE_OLD_SWERVE_DRIVE = false;
+        // USE_OLD_SWERVE_DRIVE = false;
         recordingAxes = new ArrayList<>();
         recordingButtons = new ArrayList<>();
     }
@@ -209,7 +205,7 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick3 = robotContainer.joystick3;
         LogitechJoystick joystick4 = robotContainer.joystick4;
 
-        USE_OLD_SWERVE_DRIVE = joystick1.getRawAxis(3) > 0 || IS_RECORDING;
+        // USE_OLD_SWERVE_DRIVE = joystick1.getRawAxis(3) > 0 || IS_RECORDING;
         if (USE_OLD_SWERVE_DRIVE) {
             if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
                 double speed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
@@ -262,7 +258,7 @@ public class Robot extends TimedRobot {
             elevator.setVoltage(arm, elevatorVoltage);
         }
 
-        double armSpeed = joystick4.getYAxis(0.15);
+        double armSpeed = joystick4.getYAxis(0.2);
         double armVoltage = armSpeed * MAX_ARM_VOLTAGE;
         if (Math.abs(armSpeed) > 0) {
             armVoltage += Math.signum(armSpeed) * MIN_ARM_VOLTAGE;

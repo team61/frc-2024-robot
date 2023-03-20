@@ -31,7 +31,7 @@ public class DriveCommand extends CommandBase {
 
     @Override
     public void execute() {
-        if (USE_OLD_SWERVE_DRIVE) return;
+        if (USE_OLD_SWERVE_DRIVE || IS_BALANCING) return;
         
         double translationVal = MathUtil.applyDeadband(translationSup.getAsDouble(), 0.15);
         double strafeVal = MathUtil.applyDeadband(strafeSup.getAsDouble(), 0.15);
@@ -40,7 +40,7 @@ public class DriveCommand extends CommandBase {
         swervedrive.drive(
             new Translation2d(translationVal, strafeVal).times(SwerveConstants.maxSpeed), 
             rotationVal * SwerveConstants.maxAngularVelocity, 
-            !robotCentricSup.getAsBoolean(), 
+            robotCentricSup.getAsBoolean(), 
             true
         );
     }

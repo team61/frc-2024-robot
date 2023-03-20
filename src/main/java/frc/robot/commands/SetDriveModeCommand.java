@@ -2,19 +2,14 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
-import frc.robot.subsystems.DriveTrain;
-
+import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
 
 public class SetDriveModeCommand extends CommandBase {
-    private final DriveTrain drivetrain;
     private final String mode;
 
-    public SetDriveModeCommand(DriveTrain dt, String newMode) {
-        drivetrain = dt;
+    public SetDriveModeCommand(String newMode) {
         mode = newMode;
-
-        addRequirements(dt);
     }
 
     @Override
@@ -23,6 +18,12 @@ public class SetDriveModeCommand extends CommandBase {
     @Override
     public void execute() {
         CURRENT_DRIVE_MODE = mode;
+
+        if (CURRENT_DRIVE_MODE.equals(TANK_DRIVE)) {
+            USE_OLD_SWERVE_DRIVE = true;
+        } else {
+            USE_OLD_SWERVE_DRIVE = false;
+        }
     }
 
     @Override
