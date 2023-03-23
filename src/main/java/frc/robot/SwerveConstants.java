@@ -12,18 +12,18 @@ public final class SwerveConstants {
     public static final double angleGearRatio = 12.8;
 
     public static final double maxSpeed = 4.115;
-    public static final double maxAngularVelocity = 10.0;
+    public static final double maxAngularVelocity = 7.163; //7.285;
 
     public static final double openLoopRamp = 0;
     public static final double closedLoopRamp = 0;
 
-    public static final double driveKS = 0.5;
-    public static final double driveKV = 0.5;
-    public static final double driveKA = 0.5;
-    public static final double driveKP = 0.05;
-    public static final double driveKI = 0;
-    public static final double driveKD = 0;
-    public static final double driveKF = 0;
+    public static double driveKS = 0.5;
+    public static double driveKV = 0.5;
+    public static double driveKA = 0.5;
+    public static double driveKD = 0;
+    public static double driveKF = 0;
+    public static double driveKI = 0;
+    public static double driveKP = 0.05;
 
     public static final boolean driveEnableCurrentLimit = false;
     public static final double driveContinuousCurrentLimit = 0;
@@ -46,29 +46,21 @@ public final class SwerveConstants {
         11, 
         10, 
         31, 
-        // new Rotation2d(137.375));
-        // new Rotation2d(2.40));
         new Rotation2d(0.80));
     public static final SwerveModuleConstants mod1 = new SwerveModuleConstants(
         9, 
         8, 
         32, 
-        // new Rotation2d(36.858));
-        // new Rotation2d(0.64));
         new Rotation2d(2.45));
     public static final SwerveModuleConstants mod2 = new SwerveModuleConstants(
         19,
         18,
         30,
-        //new Rotation2d(162.176));
-        // new Rotation2d(2.83));
         new Rotation2d(0.42));
     public static final SwerveModuleConstants mod3 = new SwerveModuleConstants(
         1, 
         0, 
         33, 
-        // new Rotation2d(-22.549));
-        // new Rotation2d(-0.39));
         new Rotation2d(-2.60));
     
 

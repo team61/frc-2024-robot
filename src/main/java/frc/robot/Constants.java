@@ -24,16 +24,17 @@ public final class Constants {
 
     public static final double ELEVATOR_MIN_POSITION = 0;
     public static final double ELEVATOR_MAX_UNEXTENDED_POSITION = 360000;
-    public static final double ELEVATOR_MAX_POSITION = 740000;
-    public static final double ARM_MIN_POSITION = -150000;
+    public static final double ELEVATOR_MAX_POSITION = 696000;
+    public static final double ARM_MIN_POSITION = -197000;
     public static final double ARM_MAX_POSITION = 0;
     public static final double ARM_EXTENSION_THRESHOLD = -36000;
     public static final double ARM_MIN_LOWER_EXTENSION = -36000;
 
     public static final double ELEVATOR_HUMAN_PIECE_POSITION = 183000;
     public static final double ARM_HUMAN_PIECE_POSITION = -2600;
-    public static final double ELEVATOR_FLOOR_PIECE_POSITION = 685000;
-    public static final double ARM_FLOOR_PIECE_POSITION = -43900;
+    public static final double ELEVATOR_FLOOR_PIECE_POSITION = 650000;
+    public static final double ARM_FLOOR_PIECE_POSITION = -43000;
+    public static final double ARM_PLACE_TOP_PIECE_POSITION = -143000;
 
     public static final String FORWARDS = "forwards";
     public static final String BACKWARDS = "backwards";

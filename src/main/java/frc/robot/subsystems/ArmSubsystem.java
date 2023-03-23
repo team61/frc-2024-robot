@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 
@@ -19,6 +20,7 @@ public class ArmSubsystem extends SubsystemBase {
 
         armMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
         armMotor.configIntegratedSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
+        armMotor.setNeutralMode(NeutralMode.Brake);
     }
 
     public void zero() {
@@ -43,6 +45,10 @@ public class ArmSubsystem extends SubsystemBase {
 
     public boolean isFullyExtended(double pos) {
         return pos <= ARM_MIN_POSITION;
+    }
+
+    public boolean shouldPlaceTopBlock() {
+        return getPosition() <= ARM_PLACE_TOP_PIECE_POSITION;
     }
 
     public void setVoltage(ElevatorSubsystem elevator, double volts) {

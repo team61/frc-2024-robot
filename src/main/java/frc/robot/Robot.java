@@ -127,7 +127,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("Gyro", gyro.getFusedHeading());
 
         // System.out.println(gyro.getRate());
-        // System.out.println("elevator: " + elevator.getPosition() + ", arm: " + arm.getPosition() + ", limit: " + arm.limitSwitch.get());
+        System.out.println("elevator: " + elevator.getPosition() + ", arm: " + arm.getPosition() + ", limit: " + arm.limitSwitch.get());
         // System.out.print("18,19 " + drivetrain.swervedrive.swerveMotors[0].getRotationPosition() + ", ");
         // System.out.print("10,11 " + drivetrain.swervedrive.swerveMotors[1].getRotationPosition() + ", ");
         // System.out.print("8,9 " + drivetrain.swervedrive.swerveMotors[2].getRotationPosition() + ", ");

@@ -34,12 +34,14 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             new SwerveModule(3, SwerveConstants.mod3),
         };
 
-        /* By pausing init for a second before setting module offsets, we avoid a bug with inverting motors.
-         */
         Timer.delay(1.0);
         resetModulesToAbsolute();
 
         swerveOdometry = new SwerveDriveOdometry(SwerveConstants.kinematics, getYaw(), getModulePositions());
+
+        System.out.println(SwerveConstants.driveKI);
+        System.out.println(SwerveConstants.driveKD);
+        System.out.println(SwerveConstants.driveKF);
     }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {

@@ -33,7 +33,6 @@ public class AutonomousCommand extends CommandBase {
     private final ArmSubsystem arm;
     private final ClawSubsystem claw;
     private final BalancingSubsystem balancer;
-    // private final ArrayList<WPI_TalonFX> components = Robot.components;
     private final double[][] instructionsAxes;
     private final boolean[][] instructionsButtons;
     private boolean[] prevButtonStates = new boolean[]{};
@@ -77,16 +76,17 @@ public class AutonomousCommand extends CommandBase {
         new SequentialCommandGroup(
             new ParallelCommandGroup(
                 new InstantCommand(claw::close),
-                new InstantCommand(claw::rotateUp),
-                new InstantCommand(() -> { arm.setVoltage(elevator, -MAX_ARM_VOLTAGE); })
+                new InstantCommand(claw::rotateUp)
             ),
-            new WaitUntilCommand((BooleanSupplier)arm::isFullyExtended),
+            new WaitCommand(0.5),
+            new InstantCommand(() -> { arm.setVoltage(elevator, -MAX_ARM_VOLTAGE); }),
+            new WaitUntilCommand((BooleanSupplier)arm::shouldPlaceTopBlock),
             new InstantCommand(arm::stop),
             new WaitCommand(0.2),
             new InstantCommand(claw::open),
             new WaitCommand(0.5),
             new ParallelCommandGroup(
-                new WaitCommand(0.5).andThen(claw::rotateDown),
+                new WaitCommand(1.25).andThen(claw::rotateDown),
                 new ParallelRaceGroup(
                     new RepeatCommand(
                         new ParallelCommandGroup(
