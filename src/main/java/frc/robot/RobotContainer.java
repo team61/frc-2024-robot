@@ -22,6 +22,7 @@ import frc.robot.commands.SetDriveModeCommand;
 import frc.robot.commands.ToggleBalancingCommand;
 import frc.robot.commands.ZeroOutArmCommand;
 import frc.robot.commands.ZeroOutElevatorCommand;
+import frc.robot.commands.ZeroYawCommand;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
@@ -85,7 +86,7 @@ public class RobotContainer {
                 (DoubleSupplier)() -> -joystick1.getYAxis(), 
                 (DoubleSupplier)() -> -joystick1.getXAxis(), 
                 (DoubleSupplier)() -> -joystick2.getZAxis(), 
-                (BooleanSupplier)() -> joystick1.btn_2.getAsBoolean()
+                joystick1.btn_2
             )
         );
 
@@ -99,24 +100,6 @@ public class RobotContainer {
 		joystick1.btn_12
 				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 
-		joystick2.btn_1
-				.onTrue(new InstantCommand(() -> {
-					SwerveConstants.driveKS = Math.random();
-					SwerveConstants.driveKV = Math.random();
-					SwerveConstants.driveKA = Math.random();
-					SwerveConstants.driveKD = Math.random();
-					SwerveConstants.driveKF = Math.random();
-					SwerveConstants.driveKI = Math.random();
-					SwerveConstants.driveKP = Math.random();
-
-					System.out.println("kS: " + SwerveConstants.driveKS);
-					System.out.println("kV: " + SwerveConstants.driveKV);
-					System.out.println("kA: " + SwerveConstants.driveKA);
-					System.out.println("kD: " + SwerveConstants.driveKD);
-					System.out.println("kF: " + SwerveConstants.driveKF);
-					System.out.println("kI: " + SwerveConstants.driveKI);
-					System.out.println("kP: " + SwerveConstants.driveKP);
-				}));
 		joystick2.btn_2
 				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 		// joystick2.btn_1
@@ -129,9 +112,9 @@ public class RobotContainer {
 		// joystick2.btn_4
 		// 		.or(joystick2.btn_6)
 		// 		.onTrue(new AlignMotorsCommand(swervedrive, SIDEWAYS));
-		// joystick2.btn_7
-		// 		.and(joystick2.btn_8)
-		// 		.onTrue(new ZeroOutMotorsCommand(swervedrive));
+		joystick2.btn_7
+				.and(joystick2.btn_8)
+				.onTrue(new ZeroYawCommand(gyro));
 		// joystick2.btn_9
 		// 		.onTrue(new IndividualWheelRotationCommand(swervedrive, 0, 1))
 		// 		.onFalse(new IndividualWheelRotationCommand(swervedrive, 0, 0));

@@ -7,13 +7,6 @@ import lib.util.COTSFalconSwerveConstants;
 import lib.util.SwerveModuleConstants;
 
 public final class SwerveConstants {
-    public static final double wheelCircumference = 0.1 * Math.PI;
-    public static final double driveGearRatio = 8.14;
-    public static final double angleGearRatio = 12.8;
-
-    public static final double maxSpeed = 4.115;
-    public static final double maxAngularVelocity = 7.163; //7.285;
-
     public static final double openLoopRamp = 0;
     public static final double closedLoopRamp = 0;
 
@@ -36,6 +29,13 @@ public final class SwerveConstants {
     public static final double angleKI = chosenModule.angleKI;
     public static final double angleKD = chosenModule.angleKD;
     public static final double angleKF = chosenModule.angleKF;
+
+    public static final double wheelCircumference = Math.PI * chosenModule.wheelDiameter;
+    public static final double driveGearRatio = chosenModule.driveGearRatio;
+    public static final double angleGearRatio = chosenModule.angleGearRatio;
+
+    public static final double maxSpeed = 4.115;
+    public static final double maxAngularVelocity = 7.163; //7.285;
 
     public static final boolean angleEnableCurrentLimit = false;
     public static final double angleContinuousCurrentLimit = 0;

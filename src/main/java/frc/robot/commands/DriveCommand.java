@@ -40,7 +40,7 @@ public class DriveCommand extends CommandBase {
         swervedrive.drive(
             new Translation2d(translationVal, strafeVal).times(SwerveConstants.maxSpeed), 
             rotationVal * SwerveConstants.maxAngularVelocity, 
-            robotCentricSup.getAsBoolean(), 
+            !robotCentricSup.getAsBoolean(), 
             true
         );
     }

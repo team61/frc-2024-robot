@@ -38,26 +38,27 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         resetModulesToAbsolute();
 
         swerveOdometry = new SwerveDriveOdometry(SwerveConstants.kinematics, getYaw(), getModulePositions());
-
-        System.out.println(SwerveConstants.driveKI);
-        System.out.println(SwerveConstants.driveKD);
-        System.out.println(SwerveConstants.driveKF);
     }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
+        double forward = translation.getX();
+        double strafe = -translation.getY();
+
+        if (fieldRelative) {
+            double gyroDegrees = getYaw().getDegrees();
+            double gyroRadians = gyroDegrees * Math.PI / 180; 
+            double temp = forward * Math.cos(gyroRadians) + strafe * Math.sin(gyroRadians);
+            strafe = forward * Math.sin(gyroRadians) + -strafe * Math.cos(gyroRadians);
+            forward = temp;
+        }
+
         SwerveModuleState[] swerveModuleStates =
             SwerveConstants.kinematics.toSwerveModuleStates(
-                fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                                    translation.getX(), 
-                                    translation.getY(), 
-                                    rotation, 
-                                    getYaw()
-                                )
-                                : new ChassisSpeeds(
-                                    translation.getX(), 
-                                    translation.getY(), 
-                                    rotation)
-                                );
+                new ChassisSpeeds(
+                    forward, 
+                    strafe, 
+                    rotation)
+                );
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveConstants.maxSpeed);
 
         for (SwerveModule mod : mSwerveMods) {
@@ -102,7 +103,11 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     }
     
     public Rotation2d getYaw() {
-        return Rotation2d.fromDegrees(gyro.getYaw());
+        double yaw = gyro.getYaw();
+        if (yaw < 0) {
+            yaw += 360;
+        }
+        return Rotation2d.fromDegrees(yaw);
     }
 
     public void resetModulesToAbsolute() {

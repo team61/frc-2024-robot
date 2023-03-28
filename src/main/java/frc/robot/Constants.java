@@ -30,8 +30,8 @@ public final class Constants {
     public static final double ARM_EXTENSION_THRESHOLD = -36000;
     public static final double ARM_MIN_LOWER_EXTENSION = -36000;
 
-    public static final double ELEVATOR_HUMAN_PIECE_POSITION = 183000;
-    public static final double ARM_HUMAN_PIECE_POSITION = -2600;
+    public static final double ELEVATOR_HUMAN_PIECE_POSITION = 234000;
+    public static final double ARM_HUMAN_PIECE_POSITION = 0;
     public static final double ELEVATOR_FLOOR_PIECE_POSITION = 650000;
     public static final double ARM_FLOOR_PIECE_POSITION = -43000;
     public static final double ARM_PLACE_TOP_PIECE_POSITION = -143000;
