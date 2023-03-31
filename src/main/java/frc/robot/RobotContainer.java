@@ -4,9 +4,9 @@ import lib.components.LogitechJoystick;
 import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.PneumaticHub;
@@ -17,6 +17,8 @@ import frc.robot.commands.AutonomousCommand;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.GrabCommand;
 import frc.robot.commands.GrabGamePieceCommand;
+import frc.robot.commands.MoveArmCommand;
+import frc.robot.commands.MoveElevatorCommand;
 import frc.robot.commands.RotateClawCommand;
 import frc.robot.commands.SetDriveModeCommand;
 import frc.robot.commands.ToggleBalancingCommand;
@@ -26,7 +28,6 @@ import frc.robot.commands.ZeroYawCommand;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
-import frc.robot.subsystems.DatabaseSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LEDStripSubsystem;
@@ -65,8 +66,8 @@ public class RobotContainer {
 	});
 
 	public final PneumaticHub pneumaticHub = new PneumaticHub(51);
-	private final ElevatorSubsystem elevator = new ElevatorSubsystem(2);
-	private final ArmSubsystem arm = new ArmSubsystem(3, 0);
+	public final ElevatorSubsystem elevator = new ElevatorSubsystem(2);
+	public final ArmSubsystem arm = new ArmSubsystem(3, 0);
 	private final ClawSubsystem claw = new ClawSubsystem(pneumaticHub, new int[] { 0, 1 }, new int[] { 2, 3 });
 	private final LEDStripSubsystem ledStrip = new LEDStripSubsystem(0, 56);
 
@@ -75,8 +76,6 @@ public class RobotContainer {
 	private final SwerveDriveSubsystem swerve = new SwerveDriveSubsystem(gyro);
 	private final BalancingSubsystem balancingSubsystem = new BalancingSubsystem(gyro, swerve);
 	
-	private final DatabaseSubsystem db = new DatabaseSubsystem();
-
 	private final AutonomousCommand autoCommand = new AutonomousCommand(swerve, drivetrain, gyro, elevator, arm, claw, balancingSubsystem);
 
 	public RobotContainer() {
@@ -85,10 +84,22 @@ public class RobotContainer {
                 swerve, 
                 (DoubleSupplier)() -> -joystick1.getYAxis(), 
                 (DoubleSupplier)() -> -joystick1.getXAxis(), 
-                (DoubleSupplier)() -> -joystick2.getZAxis(), 
-                joystick1.btn_2
-            )
-        );
+                (DoubleSupplier)() -> -joystick2.getXAxis(), 
+                joystick1.btn_2));
+
+		elevator.setDefaultCommand(
+			new MoveElevatorCommand(
+				elevator,
+				arm,
+				(DoubleSupplier)() -> joystick3.getYAxis(0.15),
+				joystick3.btn_2));
+			
+		arm.setDefaultCommand(
+			new MoveArmCommand(
+				arm,
+				elevator,
+				(DoubleSupplier)() -> joystick4.getYAxis(0.15),
+				joystick4.btn_2));
 
 		configureButtonBindings();
 	}
@@ -100,33 +111,13 @@ public class RobotContainer {
 		joystick1.btn_12
 				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 
+		joystick2.btn_1
+				.onTrue(new InstantCommand(() -> { elevator.elevatorMotor.set(ControlMode.Position, elevator.getPosition() + 20000); }));
 		joystick2.btn_2
 				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
-		// joystick2.btn_1
-		// 		.onTrue(new ZeroYawCommand(gyro));
-		// joystick2.btn_1
-		// 		.onTrue(new AlignMotorsCommand(swervedrive, DIAGONAL));
-		// joystick2.btn_3
-		// 		.or(joystick2.btn_5)
-		// 		.onTrue(new AlignMotorsCommand(swervedrive, FORWARDS));
-		// joystick2.btn_4
-		// 		.or(joystick2.btn_6)
-		// 		.onTrue(new AlignMotorsCommand(swervedrive, SIDEWAYS));
 		joystick2.btn_7
 				.and(joystick2.btn_8)
 				.onTrue(new ZeroYawCommand(gyro));
-		// joystick2.btn_9
-		// 		.onTrue(new IndividualWheelRotationCommand(swervedrive, 0, 1))
-		// 		.onFalse(new IndividualWheelRotationCommand(swervedrive, 0, 0));
-		// joystick2.btn_10
-		// 		.onTrue(new IndividualWheelRotationCommand(swervedrive, 1, 1))
-		// 		.onFalse(new IndividualWheelRotationCommand(swervedrive, 1, 0));
-		// joystick2.btn_11
-		// 		.onTrue(new IndividualWheelRotationCommand(swervedrive, 2, 1))
-		// 		.onFalse(new IndividualWheelRotationCommand(swervedrive, 2, 0));
-		// joystick2.btn_12
-		// 		.onTrue(new IndividualWheelRotationCommand(swervedrive, 3, 1))
-		// 		.onFalse(new IndividualWheelRotationCommand(swervedrive, 3, 0));
 				
 		joystick3.btn_1
 				.onTrue(new RotateClawCommand(claw));
@@ -145,23 +136,11 @@ public class RobotContainer {
 				.onTrue(new ZeroOutArmCommand(arm));
 		joystick4.btn_11
 				.and(joystick4.btn_12)
-	.onTrue(new InstantCommand(() -> { IS_RECORDING = true; /*USE_OLD_SWERVE_DRIVE = true;*/ }));
+				.onTrue(new InstantCommand(() -> { IS_RECORDING = true; /*USE_OLD_SWERVE_DRIVE = true;*/ }));
 	}
 
 	public DriveTrain getDriveTrain() {
 		return drivetrain;
-	}
-
-	public ElevatorSubsystem getElevator() {
-		return elevator;
-	}
-
-	public ArmSubsystem getArm() {
-		return arm;
-	}
-
-	public ClawSubsystem getClaw() {
-		return claw;
 	}
 
 	public AHRS getGyro() {
@@ -174,10 +153,6 @@ public class RobotContainer {
 
 	public LEDStripSubsystem getLEDStrip() {
 		return ledStrip;
-	}
-
-	public DatabaseSubsystem getDatabase() {
-		return db;
 	}
 
 	public Command getAutonomousCommand() {

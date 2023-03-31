@@ -39,7 +39,7 @@ public class GrabGamePieceCommand extends CommandBase {
         double armVolts = 0;
 
         if (Math.abs(elevatorPos - targetElevatorPos) > 5000) {
-            elevatorVolts = -Math.signum(elevatorPos - targetElevatorPos) * 8;
+            elevatorVolts = -Math.signum(elevatorPos - targetElevatorPos) * 12;
         }
         
         if (Math.abs(armPos - targetArmPos) > 500) {

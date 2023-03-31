@@ -12,10 +12,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.DriveTrain;
-import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LEDStripSubsystem;
 import lib.components.LogitechJoystick;
 
@@ -53,13 +51,9 @@ public class Robot extends TimedRobot {
     private double colorOffset = 0;
     private RobotContainer robotContainer;
     private DriveTrain drivetrain;
-    private ElevatorSubsystem elevator;
-    private ArmSubsystem arm;
-    // private ClawSubsystem claw;
     private AHRS gyro;
     private BalancingSubsystem balancingSubsystem;
     private LEDStripSubsystem ledStrip;
-    // private DatabaseSubsystem db;
     private Command autoCommand;
     private SendableChooser<String> autoChooser;
     private long teleopStartTime;
@@ -77,8 +71,6 @@ public class Robot extends TimedRobot {
     public void robotInit() {
         robotContainer = new RobotContainer();
         drivetrain = robotContainer.getDriveTrain();
-        elevator = robotContainer.getElevator();
-        arm = robotContainer.getArm();
         gyro = robotContainer.getGyro();
         balancingSubsystem = robotContainer.getBalancer();
         ledStrip = robotContainer.getLEDStrip();
@@ -127,7 +119,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("Gyro", gyro.getFusedHeading());
 
         // System.out.println(gyro.getRate());
-        // System.out.println("elevator: " + elevator.getPosition() + ", arm: " + arm.getPosition() + ", limit: " + arm.limitSwitch.get());
+        System.out.println("elevator: " + robotContainer.elevator.getPosition() + ", arm: " + robotContainer.arm.getPosition());
         // System.out.print("18,19 " + drivetrain.swervedrive.swerveMotors[0].getRotationPosition() + ", ");
         // System.out.print("10,11 " + drivetrain.swervedrive.swerveMotors[1].getRotationPosition() + ", ");
         // System.out.print("8,9 " + drivetrain.swervedrive.swerveMotors[2].getRotationPosition() + ", ");
@@ -156,7 +148,6 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         drivetrain.swervedrive.disableWheelBreaks();
         team = DriverStation.getAlliance();
-        // USE_OLD_SWERVE_DRIVE = true;
 
         autoCommand.schedule();
     }
@@ -164,8 +155,6 @@ public class Robot extends TimedRobot {
     /** This function is called periodically during autonomous. */
     @Override
     public void autonomousPeriodic() {
-        // drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
-
         for (int i = 0; i < ledStrip.getLength(); i++) {
             int[] color = colors[(int)(i + colorOffset) % colors.length];
             ledStrip.setRGB(i, color[0], color[1], color[2]);
@@ -192,7 +181,6 @@ public class Robot extends TimedRobot {
         balancingSubsystem.disable();
         CURRENT_DIRECTIONS = new String[] { FORWARDS, FORWARDS, FORWARDS, FORWARDS };
         IS_ROTATING = false;
-        // USE_OLD_SWERVE_DRIVE = false;
         recordingAxes = new ArrayList<>();
         recordingButtons = new ArrayList<>();
     }
@@ -203,9 +191,7 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick1 = robotContainer.joystick1;
         LogitechJoystick joystick2 = robotContainer.joystick2;
         LogitechJoystick joystick3 = robotContainer.joystick3;
-        LogitechJoystick joystick4 = robotContainer.joystick4;
 
-        // USE_OLD_SWERVE_DRIVE = joystick1.getRawAxis(3) > 0 || IS_RECORDING;
         if (USE_OLD_SWERVE_DRIVE) {
             if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
                 double speed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
@@ -247,26 +233,6 @@ public class Robot extends TimedRobot {
                 drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
                 drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
             }
-        }
-
-        double elevatorSpeed = joystick3.getYAxis(0.15);
-        double elevatorVoltage = elevatorSpeed * MAX_ELEVATOR_VOLTAGE;
-        elevatorVoltage = clamp(elevatorVoltage, -MAX_ELEVATOR_VOLTAGE, MAX_ELEVATOR_VOLTAGE);
-        if (joystick3.btn_2.getAsBoolean()) {
-            elevator.setVoltageUnsafe(elevatorVoltage);
-        } else {
-            elevator.setVoltage(arm, elevatorVoltage);
-        }
-
-        double armSpeed = joystick4.getYAxis(0.2);
-        double armVoltage = armSpeed * MAX_ARM_VOLTAGE;
-        if (Math.abs(armSpeed) > 0) {
-            armVoltage += Math.signum(armSpeed) * MIN_ARM_VOLTAGE;
-        }
-        if (joystick4.btn_2.getAsBoolean()) {
-            arm.setVoltageUnsafe(armVoltage);
-        } else {
-            arm.setVoltage(elevator, armVoltage);
         }
 
         if (IS_RECORDING) {
@@ -349,43 +315,6 @@ public class Robot extends TimedRobot {
                 pw.print("]}");
                 pw.close();
             }).start();
-            // new Thread(() -> {
-            //     File f;
-            //     PrintWriter pw;
-
-            //     f = new File("/home/lvuser/recording-" + System.currentTimeMillis() + ".txt");
-            //     try {
-            //         if (!f.exists()) {
-            //             f.createNewFile();
-            //         } else if (f.delete()) {
-            //             f.createNewFile();
-            //         }
-            //         pw = new PrintWriter(f);
-            //     } catch (IOException e) {
-            //         e.printStackTrace();
-            //         return;
-            //     }
-                
-            //     pw.print("public static double[][] axes=new double[][]{");
-            //     for (double[] data : recordingAxes) {
-            //         pw.print("new double[]{");
-            //         for (double axis : data) {
-            //             pw.print(axis + ",");
-            //         }
-            //         pw.print("},");
-            //     }
-            //     pw.print("};public static boolean[][] buttons=new boolean[][]{");
-            //     for (boolean[] data : recordingButtons) {
-            //         pw.print("new boolean[]{");
-            //         for (boolean btn : data) {
-            //             pw.print(btn + ",");
-            //         }
-            //         pw.print("},");
-            //     }
-            //     pw.print("};");
-
-            //     pw.close();
-            // }).start();
         }
     }
     
@@ -404,25 +333,5 @@ public class Robot extends TimedRobot {
         } else {
             ledStrip.off();
         }
-    }
-
-    /** This function is called once when test mode is enabled. */
-    @Override
-    public void testInit() {
-    }
-
-    /** This function is called periodically during test mode. */
-    @Override
-    public void testPeriodic() {
-    }
-
-    /** This function is called once when the robot is first started up. */
-    @Override
-    public void simulationInit() {
-    }
-
-    /** This function is called periodically whilst in simulation. */
-    @Override
-    public void simulationPeriodic() {
     }
 }

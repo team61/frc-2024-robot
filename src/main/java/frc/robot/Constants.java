@@ -2,8 +2,8 @@ package frc.robot;
 
 public final class Constants {
     public static final int joystickPort1 = 1;
-    public static final int joystickPort2 = 3;
-    public static final int joystickPort3 = 2;
+    public static final int joystickPort2 = 2;
+    public static final int joystickPort3 = 3;
     public static final int joystickPort4 = 0;
 
     public static final int CAMERA_WIDTH = 640;
@@ -27,13 +27,13 @@ public final class Constants {
     public static final double ELEVATOR_MAX_POSITION = 696000;
     public static final double ARM_MIN_POSITION = -197000;
     public static final double ARM_MAX_POSITION = 0;
-    public static final double ARM_EXTENSION_THRESHOLD = -36000;
+    public static final double ARM_EXTENSION_THRESHOLD = -28000;
     public static final double ARM_MIN_LOWER_EXTENSION = -36000;
 
     public static final double ELEVATOR_HUMAN_PIECE_POSITION = 234000;
     public static final double ARM_HUMAN_PIECE_POSITION = 0;
-    public static final double ELEVATOR_FLOOR_PIECE_POSITION = 650000;
-    public static final double ARM_FLOOR_PIECE_POSITION = -43000;
+    public static final double ELEVATOR_FLOOR_PIECE_POSITION = 630000;
+    public static final double ARM_FLOOR_PIECE_POSITION = -29000;
     public static final double ARM_PLACE_TOP_PIECE_POSITION = -143000;
 
     public static final String FORWARDS = "forwards";

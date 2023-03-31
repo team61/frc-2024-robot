@@ -18,6 +18,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorMotor.setNeutralMode(NeutralMode.Brake);
         elevatorMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
         elevatorMotor.configIntegratedSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
+        elevatorMotor.config_kD(0, 0);
+        elevatorMotor.config_kI(0, 0);
+        elevatorMotor.config_kF(0, 0);
+        elevatorMotor.config_kP(0, 0.2);
     }
 
     public void zero() {
