@@ -6,7 +6,6 @@ import static frc.robot.Globals.*;
 
 import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.PneumaticHub;
@@ -111,8 +110,6 @@ public class RobotContainer {
 		joystick1.btn_12
 				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 
-		joystick2.btn_1
-				.onTrue(new InstantCommand(() -> { elevator.elevatorMotor.set(ControlMode.Position, elevator.getPosition() + 20000); }));
 		joystick2.btn_2
 				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 		joystick2.btn_7
@@ -136,7 +133,7 @@ public class RobotContainer {
 				.onTrue(new ZeroOutArmCommand(arm));
 		joystick4.btn_11
 				.and(joystick4.btn_12)
-				.onTrue(new InstantCommand(() -> { IS_RECORDING = true; /*USE_OLD_SWERVE_DRIVE = true;*/ }));
+				.onTrue(new InstantCommand(() -> { IS_RECORDING = !IS_RECORDING; }));
 	}
 
 	public DriveTrain getDriveTrain() {

@@ -41,7 +41,6 @@ public class DriveCommand extends CommandBase {
             new Translation2d(translationVal, strafeVal).times(SwerveConstants.maxSpeed), 
             rotationVal * SwerveConstants.maxAngularVelocity, 
             !robotCentricSup.getAsBoolean(), 
-            true
-        );
+            true);
     }
 }

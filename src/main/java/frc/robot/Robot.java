@@ -88,19 +88,16 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick2 = robotContainer.joystick2;
         LogitechJoystick joystick3 = robotContainer.joystick3;
         LogitechJoystick joystick4 = robotContainer.joystick4;
-        joystickAxes.add(() -> { return joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15)); });
-        joystickAxes.add(() -> { return joystick2.getYAxis(0.15) * Math.abs(joystick2.getYAxis(0.15)); });
-        joystickAxes.add(() -> { return joystick2.getZAxis(0.05); });
-        joystickAxes.add(() -> { return joystick3.getYAxis(0.15); });
-        joystickAxes.add(() -> { return joystick4.getYAxis(0.15); });
-        joystickButtons.add(joystick1.btn_1);
-        joystickButtons.add(joystick3.btn_1);
+        joystickAxes.add(() -> -joystick1.getYAxis());
+        joystickAxes.add(() -> -joystick1.getXAxis());
+        joystickAxes.add(() -> -joystick2.getXAxis());
+        joystickAxes.add(() -> joystick3.getYAxis(0.15));
+        joystickAxes.add(() -> joystick4.getYAxis(0.15));
+        joystickButtons.add(joystick1.btn_2);
         joystickButtons.add(joystick3.btn_2);
-        joystickButtons.add(joystick4.btn_1);
         joystickButtons.add(joystick4.btn_2);
-        joystickButtons.add(joystick2.btn_1);
-        joystickButtons.add(joystick2.btn_3.or(joystick2.btn_5));
-        joystickButtons.add(joystick2.btn_4.or(joystick2.btn_6));
+        joystickButtons.add(joystick3.btn_1);
+        joystickButtons.add(joystick4.btn_1);
     }
 
     /**

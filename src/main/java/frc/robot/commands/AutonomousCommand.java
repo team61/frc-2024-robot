@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -10,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import frc.robot.SwerveConstants;
 import frc.robot.recordings.OuterAuto;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.BalancingSubsystem;
@@ -60,7 +63,7 @@ public class AutonomousCommand extends CommandBase {
     public void initialize() {
         gyro.zeroYaw();
 
-        autoMode = SmartDashboard.getString("Auto Selector", "middle").equals(OUTER) ? OUTER : MIDDLE;
+        autoMode = SmartDashboard.getString("Auto Selector", "middle");
     }
 
     @Override
@@ -69,6 +72,8 @@ public class AutonomousCommand extends CommandBase {
             middle();
         } else if (autoMode.equals(OUTER)) {
             outer();
+        } else if (autoMode.equals(REC)) {
+            rec();
         }
     }
 
@@ -180,16 +185,6 @@ public class AutonomousCommand extends CommandBase {
     }
 
     void rec() {
-        // double[] voltages = instructions[instructionIndex];
-        // for (int i = 0; i < voltages.length; i++) {
-        //     // components.get(i).setVoltage(voltages[i]);
-        //     components.get(i).set(ControlMode.Current, voltages[i]);
-        // }
-        // drivetrain.swervedrive.alignMotors(FORWARDS);
-        // instructionIndex++;
-        // if (instructionIndex >= instructions.length) {
-        //     finished = true;
-        // }
         double[] axes = instructionsAxes[instructionIndex];
         boolean[] buttons = instructionsButtons[instructionIndex];
         if (instructionIndex > 0) {
@@ -198,36 +193,20 @@ public class AutonomousCommand extends CommandBase {
             prevButtonStates = buttons;
         }
 
-        if (CURRENT_DRIVE_MODE.equals(SWERVE_DRIVE)) {
-            double speed = axes[0];
-            double rotationVoltage = -axes[2] * MAX_ROTATION_VOLTAGE;
-            double error = 0;
-            if (CURRENT_DIRECTIONS[0].equals(FORWARDS)) {
-                error = gyro.getRate();
-            }
-            drivetrain.tankdrive.driveSpeed(speed + error * Math.abs(error / 4), speed - error * Math.abs(error));
-            drivetrain.swervedrive.setRotationVoltage(rotationVoltage);
-            if (!IS_ROTATING && -axes[2] == 0) {
-                drivetrain.swervedrive.alignMotors(MIDDLE);
-            } else if (IS_ROTATING) {
-                drivetrain.swervedrive.alignMotors(DIAGONAL);
-            }
-        } else {
-            double lSpeed = axes[0];
-            double rSpeed = axes[1];
+        double translationVal = MathUtil.applyDeadband(axes[0], 0.15);
+        double strafeVal = MathUtil.applyDeadband(axes[1], 0.15);
+        double rotationVal = MathUtil.applyDeadband(axes[2], 0.15);
 
-            if (Math.abs(lSpeed) > 0.2 && Math.abs(rSpeed) > 0.2) {
-                double error = gyro.getRate();
-                lSpeed = lSpeed + error * Math.abs(error / 4);
-                rSpeed = rSpeed - error * Math.abs(error);
-            }
-            drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
-            drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
-        }
-
-        double elevatorVoltage = axes[3] * MAX_ELEVATOR_VOLTAGE;
+        swervedrive.drive(
+            new Translation2d(translationVal, strafeVal).times(SwerveConstants.maxSpeed), 
+            rotationVal * SwerveConstants.maxAngularVelocity, 
+            !buttons[0], 
+            true);
+        
+        double elevatorSpeed = axes[3];
+        double elevatorVoltage = elevatorSpeed * MAX_ELEVATOR_VOLTAGE;
         elevatorVoltage = clamp(elevatorVoltage, -MAX_ELEVATOR_VOLTAGE, MAX_ELEVATOR_VOLTAGE);
-        if (buttons[2]) {
+        if (buttons[1]) {
             elevator.setVoltageUnsafe(elevatorVoltage);
         } else {
             elevator.setVoltage(arm, elevatorVoltage);
@@ -238,21 +217,13 @@ public class AutonomousCommand extends CommandBase {
         if (Math.abs(armSpeed) > 0) {
             armVoltage += Math.signum(armSpeed) * MIN_ARM_VOLTAGE;
         }
-        if (buttons[4]) {
+        if (buttons[2]) {
             arm.setVoltageUnsafe(armVoltage);
         } else {
             arm.setVoltage(elevator, armVoltage);
         }
 
-        if (buttons[0] && !prevButtonStates[0]) {
-            CURRENT_DRIVE_MODE = TANK_DRIVE;
-        }
-
-        if (!buttons[0] && prevButtonStates[0]) {
-            CURRENT_DRIVE_MODE = SWERVE_DRIVE;
-        }
-
-        if (buttons[1] && !prevButtonStates[1]) {
+        if (buttons[3] && !prevButtonStates[3]) {
             if (claw.isRotationUninitialized()) {
                 claw.rotateUp();
             } else {
@@ -260,27 +231,12 @@ public class AutonomousCommand extends CommandBase {
             }
         }
 
-        if (buttons[3] && !prevButtonStates[3]) {
+        if (buttons[4] && !prevButtonStates[4]) {
             if (claw.isGrabbingUninitialized()) {
                 claw.close();
             } else {
                 claw.toggleGrab();
             }
-        }
-
-        if (buttons[5] && !prevButtonStates[5]) {
-            CURRENT_DIRECTIONS = new String[] { DIAGONAL, DIAGONAL, DIAGONAL, DIAGONAL };
-            IS_ROTATING = true;
-        }
-
-        if (buttons[6] && !prevButtonStates[6]) {
-            CURRENT_DIRECTIONS = new String[] { FORWARDS, FORWARDS, FORWARDS, FORWARDS };
-            IS_ROTATING = false;
-        }
-
-        if (buttons[7] && !prevButtonStates[7]) {
-            CURRENT_DIRECTIONS = new String[] { SIDEWAYS, SIDEWAYS, SIDEWAYS, SIDEWAYS };
-            IS_ROTATING = false;
         }
 
         instructionIndex++;

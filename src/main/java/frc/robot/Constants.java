@@ -42,6 +42,7 @@ public final class Constants {
     public static final String DIAGONAL = "diagonal";
     public static final String MIDDLE = "middle";
     public static final String OUTER = "outer";
+    public static final String REC = "rec";
 
     public static final String HUMAN = "human";
     public static final String FLOOR = "floor";
