@@ -17,15 +17,17 @@ public class DriveCommand extends CommandBase {
     private DoubleSupplier translationSup;
     private DoubleSupplier strafeSup;
     private DoubleSupplier rotationSup;
+    private BooleanSupplier halfRotationSup;
     private BooleanSupplier robotCentricSup;
 
-    public DriveCommand(SwerveDriveSubsystem sd, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier rotationSup, BooleanSupplier robotCentricSup) {
+    public DriveCommand(SwerveDriveSubsystem sd, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier rotationSup, BooleanSupplier halfRotationSup, BooleanSupplier robotCentricSup) {
         swervedrive = sd;
         addRequirements(sd);
 
         this.translationSup = translationSup;
         this.strafeSup = strafeSup;
         this.rotationSup = rotationSup;
+        this.halfRotationSup = halfRotationSup;
         this.robotCentricSup = robotCentricSup;
     }
 
@@ -39,8 +41,13 @@ public class DriveCommand extends CommandBase {
 
         swervedrive.drive(
             new Translation2d(translationVal, strafeVal).times(SwerveConstants.maxSpeed), 
-            rotationVal * SwerveConstants.maxAngularVelocity, 
+            rotationVal * SwerveConstants.maxAngularVelocity * (halfRotationSup.getAsBoolean() ? 0.5 : 1), 
             !robotCentricSup.getAsBoolean(), 
             true);
+    }
+
+    @Override
+    public boolean isFinished() {
+        return true;
     }
 }

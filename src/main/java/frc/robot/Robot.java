@@ -77,11 +77,14 @@ public class Robot extends TimedRobot {
         autoCommand = robotContainer.getAutonomousCommand();
 
         gyro.zeroYaw();
-        CameraServer.startAutomaticCapture();
+        CameraServer.startAutomaticCapture(0);
+        CameraServer.startAutomaticCapture(1);
 
         autoChooser = new SendableChooser<>();
         autoChooser.setDefaultOption(MIDDLE, MIDDLE);
         autoChooser.addOption(OUTER, OUTER);
+        autoChooser.addOption(REC, REC);
+        autoChooser.addOption(TEST, TEST);
         SmartDashboard.putData("Auto Selector", autoChooser);
 
         LogitechJoystick joystick1 = robotContainer.joystick1;
@@ -116,7 +119,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("Gyro", gyro.getFusedHeading());
 
         // System.out.println(gyro.getRate());
-        System.out.println("elevator: " + robotContainer.elevator.getPosition() + ", arm: " + robotContainer.arm.getPosition());
+        // System.out.println("elevator: " + robotContainer.elevator.getPosition() + ", arm: " + robotContainer.arm.getPosition());
         // System.out.print("18,19 " + drivetrain.swervedrive.swerveMotors[0].getRotationPosition() + ", ");
         // System.out.print("10,11 " + drivetrain.swervedrive.swerveMotors[1].getRotationPosition() + ", ");
         // System.out.print("8,9 " + drivetrain.swervedrive.swerveMotors[2].getRotationPosition() + ", ");
@@ -146,6 +149,7 @@ public class Robot extends TimedRobot {
         drivetrain.swervedrive.disableWheelBreaks();
         team = DriverStation.getAlliance();
 
+        CommandScheduler.getInstance().cancelAll();
         autoCommand.schedule();
     }
 
@@ -231,6 +235,40 @@ public class Robot extends TimedRobot {
                 drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
             }
         }
+
+        // var swerve = robotContainer.swerve;
+        // var elevator = robotContainer.elevator;
+        // var arm = robotContainer.arm;
+
+        // double translationVal = MathUtil.applyDeadband(-joystick1.getYAxis(), 0.15);
+        // double strafeVal = MathUtil.applyDeadband(-joystick1.getXAxis(), 0.15);
+        // double rotationVal = MathUtil.applyDeadband(-joystick2.getXAxis(), 0.15);
+
+        // swerve.drive(
+        //     new Translation2d(translationVal, strafeVal).times(SwerveConstants.maxSpeed), 
+        //     rotationVal * SwerveConstants.maxAngularVelocity, 
+        //     !joystick1.btn_2.getAsBoolean(),
+        //     true);
+        
+        // double elevatorSpeed = joystick3.getYAxis(0.15);
+        // double elevatorVoltage = elevatorSpeed * MAX_ELEVATOR_VOLTAGE;
+        // elevatorVoltage = clamp(elevatorVoltage, -MAX_ELEVATOR_VOLTAGE, MAX_ELEVATOR_VOLTAGE);
+        // if (joystick3.btn_2.getAsBoolean()) {
+        //     elevator.setVoltageUnsafe(elevatorVoltage);
+        // } else {
+        //     elevator.setVoltage(arm, elevatorVoltage);
+        // }
+
+        // double armSpeed = joystick4.getYAxis(0.15);
+        // double armVoltage = armSpeed * MAX_ARM_VOLTAGE;
+        // if (Math.abs(armSpeed) > 0) {
+        //     armVoltage += Math.signum(armSpeed) * MIN_ARM_VOLTAGE;
+        // }
+        // if (joystick4.btn_2.getAsBoolean()) {
+        //     arm.setVoltageUnsafe(armVoltage);
+        // } else {
+        //     arm.setVoltage(elevator, armVoltage);
+        // }
 
         if (IS_RECORDING) {
             double[] axes = new double[joystickAxes.size()];

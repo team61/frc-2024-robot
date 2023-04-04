@@ -72,7 +72,7 @@ public class RobotContainer {
 
 	private final AHRS gyro = new AHRS(Port.kMXP);
 	private final DriveTrain drivetrain = new DriveTrain(swervedrive, tankdrive);
-	private final SwerveDriveSubsystem swerve = new SwerveDriveSubsystem(gyro);
+	public final SwerveDriveSubsystem swerve = new SwerveDriveSubsystem(gyro);
 	private final BalancingSubsystem balancingSubsystem = new BalancingSubsystem(gyro, swerve);
 	
 	private final AutonomousCommand autoCommand = new AutonomousCommand(swerve, drivetrain, gyro, elevator, arm, claw, balancingSubsystem);
@@ -83,7 +83,8 @@ public class RobotContainer {
                 swerve, 
                 (DoubleSupplier)() -> -joystick1.getYAxis(), 
                 (DoubleSupplier)() -> -joystick1.getXAxis(), 
-                (DoubleSupplier)() -> -joystick2.getXAxis(), 
+                (DoubleSupplier)() -> -joystick2.getXAxis(),
+				joystick2.btn_2,
                 joystick1.btn_2));
 
 		elevator.setDefaultCommand(
@@ -99,7 +100,7 @@ public class RobotContainer {
 				elevator,
 				(DoubleSupplier)() -> joystick4.getYAxis(0.15),
 				joystick4.btn_2));
-
+		
 		configureButtonBindings();
 	}
 
@@ -110,8 +111,6 @@ public class RobotContainer {
 		joystick1.btn_12
 				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 
-		joystick2.btn_2
-				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 		joystick2.btn_7
 				.and(joystick2.btn_8)
 				.onTrue(new ZeroYawCommand(gyro));

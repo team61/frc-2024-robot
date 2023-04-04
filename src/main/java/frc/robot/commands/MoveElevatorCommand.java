@@ -35,4 +35,9 @@ public class MoveElevatorCommand extends CommandBase {
             elevator.setVoltage(arm, elevatorVoltage);
         }
     }
+
+    @Override
+    public boolean isFinished() {
+        return true;
+    }
 }

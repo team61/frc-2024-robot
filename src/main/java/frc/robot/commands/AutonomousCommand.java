@@ -22,7 +22,6 @@ import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 
 import static frc.robot.Constants.*;
-import static frc.robot.Globals.*;
 
 import java.util.function.BooleanSupplier;
 
@@ -43,16 +42,23 @@ public class AutonomousCommand extends CommandBase {
     private String autoMode = MIDDLE;
     private boolean finished;
 
-    public AutonomousCommand(SwerveDriveSubsystem sd, DriveTrain dt, AHRS g, ElevatorSubsystem e, ArmSubsystem a, ClawSubsystem c, BalancingSubsystem b) {
-        swervedrive = sd;
-        drivetrain = dt;
-        gyro = g;
-        elevator = e;
-        arm = a;
-        claw = c;
-        balancer = b;
+    public AutonomousCommand(
+        SwerveDriveSubsystem swervedrive,
+        DriveTrain drivetrain,
+        AHRS gyro,
+        ElevatorSubsystem elevator,
+        ArmSubsystem arm,
+        ClawSubsystem claw,
+        BalancingSubsystem balancer) {
+        this.swervedrive = swervedrive;
+        this.drivetrain = drivetrain;
+        this.gyro = gyro;
+        this.elevator = elevator;
+        this.arm = arm;
+        this.claw = claw;
+        this.balancer = balancer;
 
-        addRequirements(sd, dt, e, a, c, b);
+        addRequirements(swervedrive, drivetrain, elevator, arm, claw, balancer);
 
         new OuterAuto();
         instructionsAxes = OuterAuto.axes;
@@ -61,8 +67,6 @@ public class AutonomousCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        gyro.zeroYaw();
-
         autoMode = SmartDashboard.getString("Auto Selector", "middle");
     }
 
@@ -74,6 +78,11 @@ public class AutonomousCommand extends CommandBase {
             outer();
         } else if (autoMode.equals(REC)) {
             rec();
+        } else if (autoMode.equals(TEST)) {
+            playback();
+            if (instructionIndex >= instructionsAxes.length) finished = true;
+        } else {
+            middle();
         }
     }
 
@@ -84,61 +93,113 @@ public class AutonomousCommand extends CommandBase {
                 new InstantCommand(claw::rotateUp)
             ),
             new WaitCommand(0.5),
-            new InstantCommand(() -> { arm.setVoltage(elevator, -MAX_ARM_VOLTAGE); }),
+            new MoveArmCommand(arm, elevator, () -> -MAX_ARM_VOLTAGE, () -> false),
             new WaitUntilCommand((BooleanSupplier)arm::shouldPlaceTopBlock),
-            new InstantCommand(arm::stop),
+            new MoveArmCommand(arm, elevator, () -> 0, () -> false),
             new WaitCommand(0.2),
             new InstantCommand(claw::open),
             new WaitCommand(0.5),
             new ParallelCommandGroup(
-                new WaitCommand(1.25).andThen(claw::rotateDown),
+                new WaitCommand(1.25).andThen(() -> claw.rotateDown()),
                 new ParallelRaceGroup(
                     new RepeatCommand(
                         new ParallelCommandGroup(
                             new ConditionalCommand(
-                                new InstantCommand(arm::stop),
-                                new InstantCommand(() -> { arm.setVoltage(elevator, MAX_ARM_VOLTAGE); }),
+                                new MoveArmCommand(arm, elevator, () -> 0, () -> false),
+                                new MoveArmCommand(arm, elevator, () -> MAX_ARM_VOLTAGE, () -> false),
                                 arm::isFullyRetracted),
                             new ConditionalCommand(
-                                new InstantCommand(elevator::stop),
-                                new InstantCommand(() -> { elevator.setVoltage(arm, MAX_ELEVATOR_VOLTAGE); }),
+                                new MoveElevatorCommand(elevator, arm, () -> 0, () -> false),
+                                new MoveElevatorCommand(elevator, arm, () -> MAX_ELEVATOR_VOLTAGE, () -> false),
                                 elevator::isPastMaxUnextendedPosition
                             ),
                             new DriveCommand(
                                 swervedrive,
-                                () -> { return -0.5; },
+                                () -> { return 0.4; },
                                 () -> { return 0; },
                                 () -> { return 0; },
-                                () -> { return true; })
+                                () -> { return false; },
+                                () -> { return false; })
                         )
                     ),
-                    new WaitCommand(2.9)
+                    new WaitCommand(3.5)
                 )
             ),
             new ParallelCommandGroup(
-                new InstantCommand(arm::stop),
-                new InstantCommand(elevator::stop),
+                new MoveArmCommand(arm, elevator, () -> 0, () -> false),
+                new MoveElevatorCommand(elevator, arm, () -> 0, () -> false),
                 new InstantCommand(drivetrain.tankdrive::stop)
             ),
-            new WaitCommand(1),
+            new WaitCommand(1.5),
             new ParallelRaceGroup(
                 new RepeatCommand(
                     new DriveCommand(
                                 swervedrive,
-                                () -> { return 0.5; },
+                                () -> { return -0.4; },
                                 () -> { return 0; },
                                 () -> { return 0; },
-                                () -> { return true; })
+                                () -> { return false; },
+                                () -> { return false; })
                 ),
-                new WaitCommand(1)
+                new WaitCommand(2)
             ),
             new WaitCommand(1),
-            new ToggleBalancingCommand(drivetrain.swervedrive, balancer)
+            new InstantCommand(() -> System.out.println(1)),
+            new ToggleBalancingCommand(drivetrain.swervedrive, balancer),
+            new InstantCommand(() -> System.out.println(2))
         ).schedule();
         finished = true;
     }
 
     void outer() {
+        new SequentialCommandGroup(
+            new ParallelCommandGroup(
+                new InstantCommand(claw::close),
+                new InstantCommand(claw::rotateUp)
+            ),
+            new WaitCommand(0.5),
+            new MoveArmCommand(arm, elevator, () -> -MAX_ARM_VOLTAGE, () -> false),
+            new WaitUntilCommand((BooleanSupplier)arm::shouldPlaceTopBlock),
+            new MoveArmCommand(arm, elevator, () -> 0, () -> false),
+            new WaitCommand(0.2),
+            new InstantCommand(claw::open),
+            new WaitCommand(0.5),
+            new ParallelCommandGroup(
+                new WaitCommand(0.5).andThen(claw::rotateDown),
+                new ParallelRaceGroup(
+                    new RepeatCommand(
+                        new ParallelCommandGroup(
+                            new ConditionalCommand(
+                                new MoveArmCommand(arm, elevator, () -> 0, () -> false),
+                                new MoveArmCommand(arm, elevator, () -> MAX_ARM_VOLTAGE, () -> false),
+                                arm::isFullyRetracted),
+                            new ConditionalCommand(
+                                new MoveElevatorCommand(elevator, arm, () -> 0, () -> false),
+                                new MoveElevatorCommand(elevator, arm, () -> MAX_ELEVATOR_VOLTAGE, () -> false),
+                                elevator::isPastMaxUnextendedPosition
+                            ),
+                            new DriveCommand(
+                                swervedrive,
+                                () -> { return 0.43; },
+                                () -> { return -0.2; },
+                                () -> { return 0; },
+                                () -> { return false; },
+                                () -> { return false; })
+                        )
+                    ),
+                    new WaitCommand(4)
+                )
+            ),
+            new ParallelCommandGroup(
+                new MoveArmCommand(arm, elevator, () -> 0, () -> false),
+                new MoveElevatorCommand(elevator, arm, () -> 0, () -> false),
+                new InstantCommand(drivetrain.tankdrive::stop)
+            )
+        ).schedule();
+        finished = true;
+    }
+
+    void rec() {
         new SequentialCommandGroup(
             new ParallelCommandGroup(
                 new InstantCommand(claw::close),
@@ -151,7 +212,7 @@ public class AutonomousCommand extends CommandBase {
             new InstantCommand(claw::open),
             new WaitCommand(0.5),
             new ParallelCommandGroup(
-                new WaitCommand(0.5).andThen(claw::rotateDown),
+                new WaitCommand(1.5).andThen(claw::rotateDown),
                 new ParallelRaceGroup(
                     new RepeatCommand(
                         new ParallelCommandGroup(
@@ -159,21 +220,23 @@ public class AutonomousCommand extends CommandBase {
                                 new InstantCommand(arm::stop),
                                 new InstantCommand(() -> { arm.setVoltage(elevator, MAX_ARM_VOLTAGE); }),
                                 arm::isFullyRetracted),
-                            new ConditionalCommand(
-                                new InstantCommand(elevator::stop),
-                                new InstantCommand(() -> { elevator.setVoltage(arm, MAX_ELEVATOR_VOLTAGE); }),
-                                elevator::isPastMaxUnextendedPosition
-                            ),
-                            new DriveCommand(
-                                swervedrive,
-                                () -> { return -0.5; },
-                                () -> { return 0; },
-                                () -> { return 0; },
-                                () -> { return true; })
+                            new WaitCommand(1.5).andThen(
+                                new ConditionalCommand(
+                                    new InstantCommand(elevator::stop),
+                                    new InstantCommand(() -> { elevator.setVoltage(arm, MAX_ELEVATOR_VOLTAGE); }),
+                                    elevator::isPastMaxUnextendedPosition
+                                )
+                            )
                         )
                     ),
                     new WaitCommand(1.5)
                 )
+            ),
+            new ParallelRaceGroup(
+                new RepeatCommand(
+                    new InstantCommand(this::playback)
+                ),
+                new WaitUntilCommand(() -> instructionIndex >= instructionsAxes.length)
             ),
             new ParallelCommandGroup(
                 new InstantCommand(arm::stop),
@@ -184,7 +247,7 @@ public class AutonomousCommand extends CommandBase {
         finished = true;
     }
 
-    void rec() {
+    void playback() {
         double[] axes = instructionsAxes[instructionIndex];
         boolean[] buttons = instructionsButtons[instructionIndex];
         if (instructionIndex > 0) {
@@ -240,9 +303,6 @@ public class AutonomousCommand extends CommandBase {
         }
 
         instructionIndex++;
-        if (instructionIndex >= instructionsAxes.length) {
-            finished = true;
-        }
     }
 
     @Override

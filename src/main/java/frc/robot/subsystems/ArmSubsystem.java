@@ -79,7 +79,4 @@ public class ArmSubsystem extends SubsystemBase {
     public void stop() {
         setVoltageUnsafe(0);
     }
-
-    @Override
-    public void periodic() {}
 }

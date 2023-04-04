@@ -37,4 +37,9 @@ public class MoveArmCommand extends CommandBase {
             arm.setVoltage(elevator, armVoltage);
         }
     }
+
+    @Override
+    public boolean isFinished() {
+        return true;
+    }
 }
