@@ -144,9 +144,7 @@ public class AutonomousCommand extends CommandBase {
                 new WaitCommand(2)
             ),
             new WaitCommand(1),
-            new InstantCommand(() -> System.out.println(1)),
-            new ToggleBalancingCommand(drivetrain.swervedrive, balancer),
-            new InstantCommand(() -> System.out.println(2))
+            new ToggleBalancingCommand(drivetrain.swervedrive, balancer)
         ).schedule();
         finished = true;
     }
