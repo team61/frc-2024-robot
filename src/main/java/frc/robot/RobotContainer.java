@@ -41,20 +41,17 @@ public class RobotContainer {
 	public final LogitechJoystick joystick4 = new LogitechJoystick(joystickPort4);
 
 	private final OldSwerveDriveSubsystem swervedrive = new OldSwerveDriveSubsystem(4, new int[] {
-			19, 18,
-			11, 10,
-			9, 8,
-			1, 0,
+			2, 3,
+			0, 1,
+			16, 17,
+			18, 19,
 	}, new int[] {
-			30,
-			31,
-			32,
-			33,
+			22,
+			23,
+			24,
+			21,
 	}, new double[] {
-			162.176,
-			137.375,
-			36.858,
-			-27.549,
+			0,0,0,0
 	});
 	private final TankDriveSubsystem tankdrive = new TankDriveSubsystem(2, new int[] {
 			11, 10,
@@ -98,16 +95,26 @@ public class RobotContainer {
 			new MoveArmCommand(
 				arm,
 				elevator,
-				(DoubleSupplier)() -> joystick4.getYAxis(0.15),
+				(DoubleSupplier)() -> joystick4.getYAxis(0.20),
 				joystick4.btn_2));
 		
 		configureButtonBindings();
 	}
 
 	private void configureButtonBindings() {
-		joystick1.btn_1
-				.onTrue(new SetDriveModeCommand(TANK_DRIVE))
-				.onFalse(new SetDriveModeCommand(SWERVE_DRIVE));
+		// joystick1.btn_1
+		// 		.onTrue(new SetDriveModeCommand(TANK_DRIVE))
+		// 		.onFalse(new SetDriveModeCommand(SWERVE_DRIVE));
+		joystick1.btn_3
+			.or(joystick1.btn_5)
+			.onTrue(new InstantCommand(() -> {
+				drivetrain.enableWheelBreaks();
+			}));
+		joystick1.btn_4
+			.or(joystick1.btn_6)
+			.onTrue(new InstantCommand(() -> {
+				drivetrain.disableWheelBreaks();
+			}));
 		joystick1.btn_12
 				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 

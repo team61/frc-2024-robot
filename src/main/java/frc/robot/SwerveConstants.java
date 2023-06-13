@@ -24,7 +24,7 @@ public final class SwerveConstants {
     public static final double drivePeakCurrentDuration = 0;
 
     public static final COTSFalconSwerveConstants chosenModule = 
-        COTSFalconSwerveConstants.SDSMK4(COTSFalconSwerveConstants.driveGearRatios.SDSMK4_L1);
+        COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L1);
     public static final double angleKP = chosenModule.angleKP;
     public static final double angleKI = chosenModule.angleKI;
     public static final double angleKD = chosenModule.angleKD;
@@ -43,29 +43,29 @@ public final class SwerveConstants {
     public static final double anglePeakCurrentDuration = 0;
 
     public static final SwerveModuleConstants mod0 = new SwerveModuleConstants(
-        11, 
-        10, 
-        31, 
-        new Rotation2d(0.80));
+        2, 
+        3, 
+        22, 
+        new Rotation2d(5.37));
     public static final SwerveModuleConstants mod1 = new SwerveModuleConstants(
-        9, 
-        8, 
-        32, 
-        new Rotation2d(2.45));
-    public static final SwerveModuleConstants mod2 = new SwerveModuleConstants(
-        19,
-        18,
-        30,
-        new Rotation2d(0.42));
-    public static final SwerveModuleConstants mod3 = new SwerveModuleConstants(
-        1, 
         0, 
-        33, 
-        new Rotation2d(-2.60));
+        1, 
+        23, 
+        new Rotation2d(3.33));
+    public static final SwerveModuleConstants mod2 = new SwerveModuleConstants(
+        16, 
+        17, 
+        24, 
+        new Rotation2d(2.12));
+    public static final SwerveModuleConstants mod3 = new SwerveModuleConstants(
+        18,
+        19,
+        21,
+        new Rotation2d(2.07));
     
 
-    public static final double wheelBase = 0.47;
-    public static final double trackWidth = 0.47;
+    public static final double wheelBase = 0.546;
+    public static final double trackWidth = 0.546;
     public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
             new Translation2d(wheelBase / 2.0, trackWidth / 2.0),
             new Translation2d(wheelBase / 2.0, -trackWidth / 2.0),

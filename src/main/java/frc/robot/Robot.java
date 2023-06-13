@@ -119,12 +119,11 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("Gyro", gyro.getFusedHeading());
 
         // System.out.println(gyro.getRate());
-        // System.out.println("elevator: " + robotContainer.elevator.getPosition() + ", arm: " + robotContainer.arm.getPosition());
-        // System.out.print("18,19 " + drivetrain.swervedrive.swerveMotors[0].getRotationPosition() + ", ");
-        // System.out.print("10,11 " + drivetrain.swervedrive.swerveMotors[1].getRotationPosition() + ", ");
-        // System.out.print("8,9 " + drivetrain.swervedrive.swerveMotors[2].getRotationPosition() + ", ");
-        // System.out.println("0,1 " + drivetrain.swervedrive.swerveMotors[3].getRotationPosition());
-        // System.out.println("Roll: " + gyro.getRoll() + ", Pitch: " + gyro.getPitch() + ", Yaw: " + gyro.getYaw());
+        System.out.print("2,3 " + robotContainer.swerve.mSwerveMods[0].getAngle().getRadians() + ", ");
+        System.out.print("0,1 " + robotContainer.swerve.mSwerveMods[1].getAngle().getRadians() + ", ");
+        System.out.print("16,17 " + robotContainer.swerve.mSwerveMods[2].getAngle().getRadians() + ", ");
+        System.out.println("18,19 " + robotContainer.swerve.mSwerveMods[3].getAngle().getRadians());
+        System.out.println("Roll: " + gyro.getRoll() + ", Pitch: " + gyro.getPitch() + ", Yaw: " + gyro.getYaw());
     }
 
     /**
@@ -151,32 +150,21 @@ public class Robot extends TimedRobot {
 
         CommandScheduler.getInstance().cancelAll();
         autoCommand.schedule();
+
+        
     }
 
     /** This function is called periodically during autonomous. */
     @Override
     public void autonomousPeriodic() {
-        for (int i = 0; i < ledStrip.getLength(); i++) {
-            int[] color = colors[(int)(i + colorOffset) % colors.length];
-            ledStrip.setRGB(i, color[0], color[1], color[2]);
-        }
-
-        for (int i = 0; i < ledStrip.getLength(); i += 2) {
-            if (team == Alliance.Blue) {
-                ledStrip.setRGB(i, 0, 0, 255);
-            } else {
-                ledStrip.setRGB(i, 255, 0, 0);
-            }
-        }
-
-        colorOffset += 0.2;
+        
     }
 
     /** This function is called once when teleop is enabled. */
     @Override
     public void teleopInit() {
         autoCommand.cancel();
-        drivetrain.disableWheelBreaks();
+        drivetrain.enableWheelBreaks();
         robotContainer.pneumaticHub.enableCompressorDigital();
         teleopStartTime = System.currentTimeMillis();
         balancingSubsystem.disable();
@@ -305,7 +293,7 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledInit() {
         ledStrip.off();
-        drivetrain.swervedrive.disableWheelBreaks();
+        drivetrain.swervedrive.enableWheelBreaks();
         balancingSubsystem.disable();
         IS_RECORDING = false;
 
@@ -356,15 +344,22 @@ public class Robot extends TimedRobot {
     /** This function is called periodically when disabled. */
     @Override
     public void disabledPeriodic() {
-        if (robotContainer.joystick3.getRawAxis(3) > 0) {
-            for (int i = 0; i < ledStrip.getLength(); i++) {
-                if (Math.floor((i + colorOffset) / 7) % 2 == 0) {
-                    ledStrip.setRGB(i, 255, 128, 0);
-                } else {
-                    ledStrip.setRGB(i, 255, 0, 128);
-                }
-            }
-            colorOffset += 0.3;
+        // if (robotContainer.joystick3.getRawAxis(3) > 0) {
+        //     for (int i = 0; i < ledStrip.getLength(); i++) {
+        //         if (Math.floor((i + colorOffset) / 7) % 2 == 0) {
+        //             ledStrip.setRGB(i, 255, 128, 0);
+        //         } else {
+        //             ledStrip.setRGB(i, 255, 0, 128);
+        //         }
+        //     }
+        //     colorOffset += 0.3;
+        // } else {
+        //     ledStrip.off();
+        // }
+        if (Math.abs(gyro.getYaw()) % 360 <= 2) {
+            ledStrip.setStripRGB(0, 64, 192);
+        } else if (Math.abs(180 - gyro.getYaw()) <= 2) {
+            ledStrip.setStripRGB(64, 192, 0);
         } else {
             ledStrip.off();
         }

@@ -76,16 +76,33 @@ public class AutonomousCommand extends CommandBase {
             middle();
         } else if (autoMode.equals(OUTER)) {
             outer();
+        } else if (autoMode.equals("drop")) {
+            drop();
         } else if (autoMode.equals(REC)) {
             rec();
         } else if (autoMode.equals(TEST)) {
             playback();
             if (instructionIndex >= instructionsAxes.length) finished = true;
+        } else if (autoMode.equals("testing")) {
+            testing();
         } else {
             middle();
         }
     }
-
+    void testing() {
+        new ParallelRaceGroup(
+                new RepeatCommand(
+                    new DriveCommand(
+                        swervedrive,
+                        () -> { return -0.4; },
+                        () -> { return 0; },
+                        () -> { return 0; },
+                        () -> { return false; },
+                        () -> { return false; })
+                ),
+                new WaitCommand(2.3)
+            ).schedule();
+    }
     void middle() {
         new SequentialCommandGroup(
             new ParallelCommandGroup(
@@ -122,7 +139,7 @@ public class AutonomousCommand extends CommandBase {
                                 () -> { return false; })
                         )
                     ),
-                    new WaitCommand(3.5)
+                    new WaitCommand(4)
                 )
             ),
             new ParallelCommandGroup(
@@ -141,7 +158,7 @@ public class AutonomousCommand extends CommandBase {
                                 () -> { return false; },
                                 () -> { return false; })
                 ),
-                new WaitCommand(2)
+                new WaitCommand(2.3)
             ),
             new WaitCommand(1),
             new ToggleBalancingCommand(drivetrain.swervedrive, balancer)
@@ -179,7 +196,7 @@ public class AutonomousCommand extends CommandBase {
                             new DriveCommand(
                                 swervedrive,
                                 () -> { return 0.43; },
-                                () -> { return -0.2; },
+                                () -> { return -0.18; },
                                 () -> { return 0; },
                                 () -> { return false; },
                                 () -> { return false; })
@@ -195,6 +212,36 @@ public class AutonomousCommand extends CommandBase {
             )
         ).schedule();
         finished = true;
+    }
+
+    void drop() {
+        new SequentialCommandGroup(
+            new ParallelCommandGroup(
+                new InstantCommand(claw::close),
+                new InstantCommand(claw::rotateUp)
+            ),
+            new WaitCommand(0.5),
+            new MoveArmCommand(arm, elevator, () -> -MAX_ARM_VOLTAGE, () -> false),
+            new WaitUntilCommand((BooleanSupplier)arm::shouldPlaceTopBlock),
+            new MoveArmCommand(arm, elevator, () -> 0, () -> false),
+            new WaitCommand(0.2),
+            new InstantCommand(claw::open),
+            new WaitCommand(0.5),
+            new ParallelCommandGroup(
+                new WaitCommand(1).andThen(claw::rotateDown),
+                new ParallelRaceGroup(
+                    new RepeatCommand(
+                        new ParallelCommandGroup(
+                            new ConditionalCommand(
+                                new MoveArmCommand(arm, elevator, () -> 0, () -> false),
+                                new MoveArmCommand(arm, elevator, () -> MAX_ARM_VOLTAGE, () -> false),
+                                arm::isFullyRetracted)
+                        )
+                    )
+                ),
+                new WaitCommand(4)
+            )
+        ).schedule();
     }
 
     void rec() {

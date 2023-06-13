@@ -37,6 +37,6 @@ public class BalancingSubsystem extends SubsystemBase {
         
         double pitch = Math.round(gyro.getPitch() / 5) * 5;
         double speed = -pitch * 0.0085;
-        swervedrive.drive(new Translation2d(Math.signum(speed) * 0.4, 0), 0, true, true);
+        swervedrive.drive(new Translation2d(Math.signum(speed) * 0.42, 0), 0, true, true);
     }
 }
