@@ -51,17 +51,17 @@ public final class SwerveConstants {
         0, 
         1, 
         23, 
-        new Rotation2d(3.33));
+        new Rotation2d(3.93));
     public static final SwerveModuleConstants mod2 = new SwerveModuleConstants(
         16, 
         17, 
         24, 
-        new Rotation2d(2.12));
+        new Rotation2d(5.12));
     public static final SwerveModuleConstants mod3 = new SwerveModuleConstants(
         18,
         19,
         21,
-        new Rotation2d(2.07));
+        new Rotation2d(4.67));
     
 
     public static final double wheelBase = 0.546;

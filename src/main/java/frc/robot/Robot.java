@@ -123,7 +123,7 @@ public class Robot extends TimedRobot {
         System.out.print("0,1 " + robotContainer.swerve.mSwerveMods[1].getAngle().getRadians() + ", ");
         System.out.print("16,17 " + robotContainer.swerve.mSwerveMods[2].getAngle().getRadians() + ", ");
         System.out.println("18,19 " + robotContainer.swerve.mSwerveMods[3].getAngle().getRadians());
-        System.out.println("Roll: " + gyro.getRoll() + ", Pitch: " + gyro.getPitch() + ", Yaw: " + gyro.getYaw());
+        // System.out.println("Roll: " + gyro.getRoll() + ", Pitch: " + gyro.getPitch() + ", Yaw: " + gyro.getYaw());
     }
 
     /**
@@ -150,8 +150,6 @@ public class Robot extends TimedRobot {
 
         CommandScheduler.getInstance().cancelAll();
         autoCommand.schedule();
-
-        
     }
 
     /** This function is called periodically during autonomous. */
