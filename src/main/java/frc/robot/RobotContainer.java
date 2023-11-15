@@ -102,9 +102,9 @@ public class RobotContainer {
 	}
 
 	private void configureButtonBindings() {
-		// joystick1.btn_1
-		// 		.onTrue(new SetDriveModeCommand(TANK_DRIVE))
-		// 		.onFalse(new SetDriveModeCommand(SWERVE_DRIVE));
+		joystick1.btn_1
+				.onTrue(new SetDriveModeCommand(TANK_DRIVE))
+				.onFalse(new SetDriveModeCommand(SWERVE_DRIVE));
 		joystick1.btn_3
 			.or(joystick1.btn_5)
 			.onTrue(new InstantCommand(() -> {
@@ -115,12 +115,23 @@ public class RobotContainer {
 			.onTrue(new InstantCommand(() -> {
 				drivetrain.disableWheelBreaks();
 			}));
-		joystick1.btn_12
-				.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
+		// joystick1.btn_12
+		// 		.onTrue(new ToggleBalancingCommand(swervedrive, balancingSubsystem));
 
 		joystick2.btn_7
 				.and(joystick2.btn_8)
 				.onTrue(new ZeroYawCommand(gyro));
+		joystick2.btn_12
+				.onTrue(new InstantCommand(() -> {
+					swerve.mSwerveMods[0].angleEncoder.configMagnetOffset(-swerve.mSwerveMods[0].getAngle().getDegrees());
+					swerve.mSwerveMods[1].angleEncoder.configMagnetOffset(-swerve.mSwerveMods[1].getAngle().getDegrees());
+					swerve.mSwerveMods[2].angleEncoder.configMagnetOffset(-swerve.mSwerveMods[2].getAngle().getDegrees());
+					swerve.mSwerveMods[3].angleEncoder.configMagnetOffset(-swerve.mSwerveMods[3].getAngle().getDegrees());
+					// swerve.mSwerveMods[0].angleEncoder.configMagnetOffset(0.0);
+					// swerve.mSwerveMods[1].angleEncoder.configMagnetOffset(0.0);
+					// swerve.mSwerveMods[2].angleEncoder.configMagnetOffset(0.0);
+					// swerve.mSwerveMods[3].angleEncoder.configMagnetOffset(0.0);
+				}));
 				
 		joystick3.btn_1
 				.onTrue(new RotateClawCommand(claw));

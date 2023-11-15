@@ -42,26 +42,26 @@ public final class SwerveConstants {
     public static final double anglePeakCurrentLimit = 0;
     public static final double anglePeakCurrentDuration = 0;
 
-    public static final SwerveModuleConstants mod0 = new SwerveModuleConstants(
+    public static final SwerveModuleConstants frontLeftMod = new SwerveModuleConstants(
         2, 
         3, 
         22, 
-        new Rotation2d(5.37));
-    public static final SwerveModuleConstants mod1 = new SwerveModuleConstants(
+        new Rotation2d(0)); //1.87
+    public static final SwerveModuleConstants frontRightMod = new SwerveModuleConstants(
         0, 
         1, 
         23, 
-        new Rotation2d(3.93));
-    public static final SwerveModuleConstants mod2 = new SwerveModuleConstants(
+        new Rotation2d(0)); //4.73
+    public static final SwerveModuleConstants backLeftMod = new SwerveModuleConstants(
         16, 
         17, 
         24, 
-        new Rotation2d(5.12));
-    public static final SwerveModuleConstants mod3 = new SwerveModuleConstants(
+        new Rotation2d(0)); //1.94
+    public static final SwerveModuleConstants backRightMod = new SwerveModuleConstants(
         18,
         19,
         21,
-        new Rotation2d(4.67));
+        new Rotation2d(0)); // 1.69
     
 
     public static final double wheelBase = 0.546;

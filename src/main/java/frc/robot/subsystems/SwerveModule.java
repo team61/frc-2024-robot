@@ -12,6 +12,7 @@ import lib.util.SwerveModuleConstants;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+// import com.ctre.phoenix.motorcontrol.TalonFXSensorCollection;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
@@ -23,7 +24,7 @@ public class SwerveModule {
 
     private TalonFX mAngleMotor;
     private TalonFX mDriveMotor;
-    private CANCoder angleEncoder;
+    public CANCoder angleEncoder;
 
     SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(SwerveConstants.driveKS, SwerveConstants.driveKV, SwerveConstants.driveKA);
     CTREConfigs configs = new CTREConfigs();
@@ -78,6 +79,7 @@ public class SwerveModule {
 
     public void resetToAbsolute() {
         double absolutePosition = Conversions.degreesToFalcon(getCanCoder().getDegrees() - angleOffset.getDegrees(), SwerveConstants.angleGearRatio);
+        // double absolutePosition = 0;
         mAngleMotor.setSelectedSensorPosition(absolutePosition);
     }
 
@@ -85,6 +87,7 @@ public class SwerveModule {
         angleEncoder.configFactoryDefault();
         angleEncoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
         angleEncoder.configAllSettings(configs.swerveCanCoderConfig);
+        angleEncoder.setPositionToAbsolute();
         angleEncoder.getPosition();
     }
 

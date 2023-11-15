@@ -16,6 +16,8 @@ import frc.robot.subsystems.BalancingSubsystem;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.LEDStripSubsystem;
 import lib.components.LogitechJoystick;
+import com.ctre.phoenix.motorcontrol.TalonFXSensorCollection;
+import com.ctre.phoenix.motorcontrol.can.BaseTalon;
 
 import static frc.robot.Constants.*;
 import static frc.robot.Globals.*;
@@ -119,17 +121,33 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("Gyro", gyro.getFusedHeading());
 
         // System.out.println(gyro.getRate());
-        System.out.print("2,3 " + robotContainer.swerve.mSwerveMods[0].getAngle().getRadians() + ", ");
-        System.out.print("0,1 " + robotContainer.swerve.mSwerveMods[1].getAngle().getRadians() + ", ");
-        System.out.print("16,17 " + robotContainer.swerve.mSwerveMods[2].getAngle().getRadians() + ", ");
-        System.out.println("18,19 " + robotContainer.swerve.mSwerveMods[3].getAngle().getRadians());
+        System.out.println("front left " + robotContainer.swerve.mSwerveMods[0].getAngle().getRadians() + ", ");
+        System.out.println("front right " + robotContainer.swerve.mSwerveMods[1].getAngle().getRadians() + ", ");
+        System.out.println("back right " + robotContainer.swerve.mSwerveMods[2].getAngle().getRadians() + ", ");
+        System.out.println("back left " + robotContainer.swerve.mSwerveMods[3].getAngle().getRadians());
+        // drivetrain.swervedrive.alignMotors(FORWARDS);
+        // System.out.println("18,19 " + robotContainer.swerve.mSwerveMods[3].getState());
+        // BaseTalon base = new BaseTalon(3, "phoenix");
+
+        // TalonFXSensorCollection fx = new TalonFXSensorCollection(base);
+        // System.out.println(fx.getIntegratedSensorPosition());
+        // robotContainer.swerve.SwerveModuleState[] desiredStates = new SwerveModuleState[4]; // Assuming you have 4 modules
+
+        // // Populate the desiredStates array with the desired states for each module
+        // desiredStates[0] = robotContainer.swerve.SwerveModuleState(1.0, Rotation2d.fromDegrees(45.0)); // Example values
+        // desiredStates[1] = robotContainer.swerve.SwerveModuleState(1.0, Rotation2d.fromDegrees(135.0)); // Example values
+        // desiredStates[2] = robotContainer.swerve.SwerveModuleState(1.0, Rotation2d.fromDegrees(225.0)); // Example values
+        // desiredStates[3] = robotContainer.swerve.SwerveModuleState(1.0, Rotation2d.fromDegrees(315.0)); // Example values
+
+// Call the setModuleStates method with the desired states
+// swerveDrive.setModuleStates(desiredStates);
         // System.out.println("Roll: " + gyro.getRoll() + ", Pitch: " + gyro.getPitch() + ", Yaw: " + gyro.getYaw());
     }
 
     /**
      * This autonomous (along with the chooser code above) shows how to select
      * between differentd
-     * autonomous modes using the dashboard. The sendable chooser code works with
+     * autonomous modes using the dashboard. The sendable chooser code works with   
      * the Java
      * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the
      * chooser code and

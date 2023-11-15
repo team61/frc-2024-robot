@@ -28,10 +28,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         zeroGyro();
         
         mSwerveMods = new SwerveModule[] {
-            new SwerveModule(0, SwerveConstants.mod0),
-            new SwerveModule(1, SwerveConstants.mod1),
-            new SwerveModule(2, SwerveConstants.mod2),
-            new SwerveModule(3, SwerveConstants.mod3),
+            new SwerveModule(0, SwerveConstants.frontLeftMod),
+            new SwerveModule(1, SwerveConstants.frontRightMod),
+            new SwerveModule(2, SwerveConstants.backRightMod),
+            new SwerveModule(3, SwerveConstants.backLeftMod),
         };
 
         Timer.delay(1.0);

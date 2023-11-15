@@ -72,36 +72,39 @@ public class AutonomousCommand extends CommandBase {
 
     @Override
     public void execute() {
-        if (autoMode.equals(MIDDLE)) {
-            middle();
-        } else if (autoMode.equals(OUTER)) {
-            outer();
-        } else if (autoMode.equals("drop")) {
-            drop();
-        } else if (autoMode.equals(REC)) {
-            rec();
-        } else if (autoMode.equals(TEST)) {
-            playback();
-            if (instructionIndex >= instructionsAxes.length) finished = true;
-        } else if (autoMode.equals("testing")) {
-            testing();
-        } else {
-            middle();
-        }
+        System.out.println(autoMode);
+        testing();
+        // if (autoMode.equals(MIDDLE)) {
+        //     middle();
+        // } else if (autoMode.equals(OUTER)) {
+        //     outer();
+        // } else if (autoMode.equals("drop")) {
+        //     drop();
+        // } else if (autoMode.equals(REC)) {
+        //     rec();
+        // } else if (autoMode.equals(TEST)) {
+        //     playback();
+        //     if (instructionIndex >= instructionsAxes.length) finished = true;
+        // } else if (autoMode.equals("testing")) {
+        //     testing();
+        // } else {
+        //     middle();
+        // }
     }
     void testing() {
-        new ParallelRaceGroup(
-                new RepeatCommand(
-                    new DriveCommand(
-                        swervedrive,
-                        () -> { return -0.4; },
-                        () -> { return 0; },
-                        () -> { return 0; },
-                        () -> { return false; },
-                        () -> { return false; })
-                ),
-                new WaitCommand(2.3)
-            ).schedule();
+        // new ParallelRaceGroup(
+        //         new RepeatCommand(
+        //             new DriveCommand(
+        //                 swervedrive,
+        //                 () -> { return 0; },
+        //                 () -> { return 0; },
+        //                 () -> { return 0; },
+        //                 () -> { return true; },
+        //                 () -> { return true; })
+        //         ),
+        //         new WaitCommand(1)
+        //     ).schedule();
+        
     }
     void middle() {
         new SequentialCommandGroup(
