@@ -198,7 +198,7 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick3 = robotContainer.joystick3;
 
         if (USE_OLD_SWERVE_DRIVE) {
-            if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
+            if (CURRENT_DRIVE_MODE.equals(SWERVE_DRIVE)) {
                 double speed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
                 double rotationVoltage = -joystick2.getZAxis(0.05) * MAX_ROTATION_VOLTAGE;
                 
