@@ -12,9 +12,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.subsystems.BalancingSubsystem;
-import frc.robot.subsystems.DriveTrain;
-import frc.robot.subsystems.LEDStripSubsystem;
 import lib.components.LogitechJoystick;
 import com.ctre.phoenix.motorcontrol.TalonFXSensorCollection;
 import com.ctre.phoenix.motorcontrol.can.BaseTalon;
@@ -52,10 +49,7 @@ public class Robot extends TimedRobot {
     private Alliance team = Alliance.Invalid;
     private double colorOffset = 0;
     private RobotContainer robotContainer;
-    private DriveTrain drivetrain;
     private AHRS gyro;
-    private BalancingSubsystem balancingSubsystem;
-    private LEDStripSubsystem ledStrip;
     private Command autoCommand;
     private SendableChooser<String> autoChooser;
     private long teleopStartTime;
@@ -72,10 +66,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         robotContainer = new RobotContainer();
-        drivetrain = robotContainer.getDriveTrain();
         gyro = robotContainer.getGyro();
-        balancingSubsystem = robotContainer.getBalancer();
-        ledStrip = robotContainer.getLEDStrip();
         autoCommand = robotContainer.getAutonomousCommand();
 
         gyro.zeroYaw();
@@ -163,7 +154,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-        drivetrain.swervedrive.disableWheelBreaks();
+        // drivetrain.swervedrive.disableWheelBreaks();
         team = DriverStation.getAlliance();
 
         CommandScheduler.getInstance().cancelAll();
@@ -180,10 +171,10 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         autoCommand.cancel();
-        drivetrain.enableWheelBreaks();
+        // drivetrain.enableWheelBreaks();
         robotContainer.pneumaticHub.enableCompressorDigital();
         teleopStartTime = System.currentTimeMillis();
-        balancingSubsystem.disable();
+        // balancingSubsystem.disable();
         CURRENT_DIRECTIONS = new String[] { FORWARDS, FORWARDS, FORWARDS, FORWARDS };
         IS_ROTATING = false;
         recordingAxes = new ArrayList<>();
@@ -197,48 +188,7 @@ public class Robot extends TimedRobot {
         LogitechJoystick joystick2 = robotContainer.joystick2;
         LogitechJoystick joystick3 = robotContainer.joystick3;
 
-        if (USE_OLD_SWERVE_DRIVE) {
-            if (CURRENT_DRIVE_MODE == SWERVE_DRIVE) {
-                double speed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
-                double rotationVoltage = -joystick2.getZAxis(0.05) * MAX_ROTATION_VOLTAGE;
-                
-                if (joystick1.btn_2.getAsBoolean()) {
-                    speed *= SLOWDOWN_COEFFICIENT;
-                }
-
-                if (joystick2.btn_2.getAsBoolean()) {
-                    rotationVoltage *= SLOWDOWN_COEFFICIENT;
-                }
-
-                double error = 0;
-                if (CURRENT_DIRECTIONS[0].equals(FORWARDS)) {
-                    error = gyro.getRate();
-                }
-                drivetrain.tankdrive.driveSpeed(speed + error * Math.abs(error / 4), speed - error * Math.abs(error));
-                drivetrain.swervedrive.setRotationVoltage(rotationVoltage);
-                if (!IS_ROTATING && -joystick2.getZAxis(0.05) == 0) {
-                    drivetrain.swervedrive.alignMotors(MIDDLE);
-                } else if (IS_ROTATING) {
-                    drivetrain.swervedrive.alignMotors(DIAGONAL);
-                }
-            } else {
-                double lSpeed = joystick1.getYAxis(0.15) * Math.abs(joystick1.getYAxis(0.15));
-                double rSpeed = joystick2.getYAxis(0.15) * Math.abs(joystick2.getYAxis(0.15));
-
-                if (joystick1.btn_2.getAsBoolean() || joystick2.btn_2.getAsBoolean()) {
-                    lSpeed *= SLOWDOWN_COEFFICIENT;
-                    rSpeed *= SLOWDOWN_COEFFICIENT;
-                }
-
-                if (Math.abs(lSpeed) > 0.2 && Math.abs(rSpeed) > 0.2) {
-                    double error = gyro.getRate();
-                    lSpeed = lSpeed + error * Math.abs(error / 4);
-                    rSpeed = rSpeed - error * Math.abs(error);
-                }
-                drivetrain.tankdrive.driveSpeed(lSpeed, rSpeed);
-                drivetrain.swervedrive.alignMotors(CURRENT_DIRECTIONS);
-            }
-        }
+        
 
         // var swerve = robotContainer.swerve;
         // var elevator = robotContainer.elevator;
@@ -289,28 +239,28 @@ public class Robot extends TimedRobot {
             recordingButtons.add(buttons);
         }
 
-        double timeElapsed = (System.currentTimeMillis() - teleopStartTime) / 1000.0;
-        if (timeElapsed > 105) {
-            if (Math.round(timeElapsed * 2) == Math.floor(timeElapsed * 2)) {
-                ledStrip.setStripRGB(255, 0, 0);
-            } else {
-                ledStrip.off();
-            }
-        } else {
-            if (joystick3.getRawAxis(3) > 0) {
-                ledStrip.setStripRGB(255, 0, 128);
-            } else {
-                ledStrip.setStripRGB(255, 128, 0);
-            }
-        }
+        // double timeElapsed = (System.currentTimeMillis() - teleopStartTime) / 1000.0;
+        // if (timeElapsed > 105) {
+        //     if (Math.round(timeElapsed * 2) == Math.floor(timeElapsed * 2)) {
+        //         ledStrip.setStripRGB(255, 0, 0);
+        //     } else {
+        //         ledStrip.off();
+        //     }
+        // } else {
+        //     if (joystick3.getRawAxis(3) > 0) {
+        //         ledStrip.setStripRGB(255, 0, 128);
+        //     } else {
+        //         ledStrip.setStripRGB(255, 128, 0);
+        //     }
+        // }
     }
 
     /** This function is called once when the robot is disabled. */
     @Override
     public void disabledInit() {
-        ledStrip.off();
-        drivetrain.swervedrive.enableWheelBreaks();
-        balancingSubsystem.disable();
+        // ledStrip.off();
+        // drivetrain.swervedrive.enableWheelBreaks();
+        // balancingSubsystem.disable();
         IS_RECORDING = false;
 
         if (recordingAxes.size() > 0) {
@@ -372,12 +322,12 @@ public class Robot extends TimedRobot {
         // } else {
         //     ledStrip.off();
         // }
-        if (Math.abs(gyro.getYaw()) % 360 <= 2) {
-            ledStrip.setStripRGB(0, 64, 192);
-        } else if (Math.abs(180 - gyro.getYaw()) <= 2) {
-            ledStrip.setStripRGB(64, 192, 0);
-        } else {
-            ledStrip.off();
-        }
+        // if (Math.abs(gyro.getYaw()) % 360 <= 2) {
+        //     ledStrip.setStripRGB(0, 64, 192);
+        // } else if (Math.abs(180 - gyro.getYaw()) <= 2) {
+        //     ledStrip.setStripRGB(64, 192, 0);
+        // } else {
+        //     ledStrip.off();
+        // }
     }
 }
