@@ -38,13 +38,7 @@ public class DriveSystem {
 
     public void callibrateAngles() {
         for (DriveModule module : modules) {
-            module.callibrateAngle();
-        }
-    }
-
-    public void config() {
-        for (DriveModule module : modules) {
-            module.config();
+            module.calibrateAngle();
         }
     }
 

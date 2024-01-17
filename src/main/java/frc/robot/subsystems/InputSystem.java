@@ -10,12 +10,16 @@ public class InputSystem {
 
     public LogitechJoystick[] joysticks;
 
+    private double throttle;
+
     private InputSystem() {
         joysticks = new LogitechJoystick[Constants.joystickNumbers.length];
 
         for (int i = 0; i < Constants.joystickNumbers.length; i++) {
             joysticks[i] = new LogitechJoystick(Constants.joystickNumbers[i]);
         }
+
+        throttle = Constants.throttlePresets[Constants.defaultThrottlePreset];
     }
 
     public static InputSystem get() {
@@ -30,15 +34,39 @@ public class InputSystem {
         return getJoystickVector(0);
     }
 
+    public double getRotationPower() {
+        return joysticks[1].getVector().y;
+    }
+
+    public Vector2D getTargetAngleVector() {
+        return joysticks[1].getVector();
+    }
+
+    public void updateMainThrottle() {
+        if (joysticks[0].btn_12.getAsBoolean()) {
+            throttle = Constants.throttlePresets[0];
+        }
+        else if (joysticks[0].btn_10.getAsBoolean()) {
+            throttle = Constants.throttlePresets[1];
+        }
+        else if (joysticks[0].btn_8.getAsBoolean()) {
+            throttle = Constants.throttlePresets[2];
+        }
+    }
+
     public double getMainThrottle() {
-        return ((-joysticks[0].getThrottle() + 1) / 2) * (Constants.throttleMax - Constants.throttleMin) + Constants.throttleMin;
+        return throttle;
     }
 
     public boolean getCallibrateButton() {
         return joysticks[0].btn_1.getAsBoolean();
     }
 
+    public boolean getResetGyroButton() {
+        return joysticks[1].btn_1.getAsBoolean();
+    }
+
     private Vector2D getJoystickVector(int i) {
-        return new Vector2D(joysticks[i].getXAxis(), -joysticks[i].getYAxis());
+        return joysticks[i].getVector();
     }
 }

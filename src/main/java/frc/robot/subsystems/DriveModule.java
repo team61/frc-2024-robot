@@ -19,6 +19,7 @@ public class DriveModule {
 
     private DriveModulePosition position;
     private boolean enabled;
+    private boolean inverted;
 
     public DriveModule(int driveMotorNumber, int angleMotorNumber, int angleEncoderNumber, DriveModulePosition position) {
         driveMotor = new TalonFX(driveMotorNumber);
@@ -46,19 +47,28 @@ public class DriveModule {
         enabled = false;
     }
 
-    public void callibrateAngle() {
-        double angle = angleEncoder.getAbsolutePosition() - Constants.encoderAbsoluteOffsets[position.i];
+    public void calibrateAngle() {
+        angleEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
+        angleMotor.configIntegratedSensorAbsoluteRange(AbsoluteSensorRange.Unsigned_0_to_360);
 
+        driveMotor.setInverted(Constants.driveMotorInverted[position.i] != inverted);
+        angleMotor.setInverted(Constants.angleMotorInverted[position.i]);
+        
+        double angle = angleEncoder.getAbsolutePosition() - Constants.encoderAbsoluteOffsets[position.i] + (inverted ? 0 : 180);
+        
         angleEncoder.setPosition(angle);
         angleMotor.setSelectedSensorPosition(Conversions.degreesToFalcon(angle, Constants.gearRatio));
     }
 
-    public void config() {
-        angleEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-        angleMotor.configIntegratedSensorAbsoluteRange(AbsoluteSensorRange.Unsigned_0_to_360);
+    public void invertAngle() {
+        double angle = angleEncoder.getPosition() + 180;
+        
+        angleEncoder.setPosition(angle);
+        angleMotor.setSelectedSensorPosition(Conversions.degreesToFalcon(angle, Constants.gearRatio));
 
-        driveMotor.setInverted(Constants.driveMotorInverted[position.i]);
-        angleMotor.setInverted(Constants.angleMotorInverted[position.i]);
+        driveMotor.setInverted(!driveMotor.getInverted());
+
+        inverted = !inverted;
     }
 
     public void setPower(double power) {
@@ -66,12 +76,37 @@ public class DriveModule {
     }
 
     public void setAngle(double angle) {
-        angleMotor.set(ControlMode.Position, Conversions.degreesToFalcon(angle, Constants.gearRatio));
+        double adjustedAngle = angle;
+
+        while (getCalibratedAngle() - adjustedAngle > 180) {
+            adjustedAngle += 360;
+        }
+
+        while (getCalibratedAngle() - adjustedAngle < -180) {
+            adjustedAngle -= 360;
+        }
+
+        //inversion
+
+        // if (Math.abs(getCalibratedAngle() - adjustedAngle) > 90) {
+        //     invertAngle();
+            
+        //     if (getCalibratedAngle() - adjustedAngle > 180) {
+        //         adjustedAngle += 360;
+        //     }
+        // }
+        
+        angleMotor.set(ControlMode.Position, Conversions.degreesToFalcon(adjustedAngle, Constants.gearRatio));
     }
 
     public void setToVector(Vector2D vector) {
+        double magnitude = vector.magnitude();
+
+        if (magnitude != 0) {
+            setAngle(vector.theta());
+        }
+        
         setPower(vector.magnitude());
-        setAngle(vector.theta());
     }
 
     public void setMovement(Vector2D translationVector, double rotationPower) {
@@ -83,5 +118,9 @@ public class DriveModule {
 
     public double getAngle() {
         return angleEncoder.getPosition();
+    }
+
+    public double getCalibratedAngle() {
+        return Conversions.falconToDegrees(angleMotor.getSelectedSensorPosition(), Constants.gearRatio);
     }
 }

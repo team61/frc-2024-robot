@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import lib.components.LogitechJoystick;
@@ -40,6 +41,8 @@ import frc.robot.subsystems.DriveModule;
 import frc.robot.subsystems.DriveSystem;
 import frc.robot.subsystems.InputSystem;
 
+import com.kauailabs.navx.frc.AHRS;
+
 import java.lang.Math;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -47,38 +50,43 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 public class Robot extends TimedRobot {
     DriveSystem driveSystem = DriveSystem.get();
     InputSystem inputSystem = InputSystem.get();
-    
-    TalonFX motor4 = new TalonFX(4);
-    TalonFX motor5 = new TalonFX(5);
-    LogitechJoystick joystick2 = new LogitechJoystick(Constants.joystickNumbers[2]);
+    AHRS gyro = new AHRS(Port.kMXP);
 
+    double targetAngle = 0;
 
-    /*
     @Override
     public void robotInit() {
-        
+        System.out.println("Callibrating gyro. Don't move robot for the next several seconds...");
+        gyro.calibrate();
     }
 
     @Override
     public void robotPeriodic() {
+        //gyro testing
+        //System.out.println(gyro.isMagnetometerCalibrated() + ", " + gyro.isCalibrating());
+        //System.out.println(gyro.getYaw());
+
+        //prints encoder offsets
+        // System.out.println("0: " + new CANCoder(Constants.angleEncoderNumbers[0]).getAbsolutePosition());
+        // System.out.println("1: " + new CANCoder(Constants.angleEncoderNumbers[1]).getAbsolutePosition());
+        // System.out.println("2: " + new CANCoder(Constants.angleEncoderNumbers[2]).getAbsolutePosition());
+        // System.out.println("3: " + new CANCoder(Constants.angleEncoderNumbers[3]).getAbsolutePosition());
         
+        //prints joystick 0
+        // System.out.println(inputSystem.joysticks[0].getVector().toString());
     }
 
     @Override
-    public void autonomousInit() {
-        
+    public void disabledInit() {
+        driveSystem.disable();
     }
-
+    
     @Override
-    public void autonomousPeriodic() {
-        
-    }
-    */
+    public void disabledPeriodic() {}
 
     @Override
     public void teleopInit() {
         driveSystem.enable();
-        driveSystem.config();
         driveSystem.callibrateAngles();
         
         for (DriveModule module : driveSystem.modules) {
@@ -88,43 +96,82 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
+        //update throttle
+        inputSystem.updateMainThrottle();
+        
+        //get robot-relative translation vector
         Vector2D translationVector = inputSystem.getTranslationVector();
-        double magnitude = Math.min(translationVector.magnitude(), 1);
+        translationVector = Vector2D.rotateByDegrees(translationVector, gyro.getYaw());
 
-        for (DriveModule module : driveSystem.modules) {
-            if (magnitude != 0) {
-                module.setAngle(translationVector.theta());
-            }
-            
-            module.setPower(magnitude * inputSystem.getMainThrottle());
-
-            //System.out.print(Conversions.falconToDegrees(module.angleMotor.getSelectedSensorPosition(), Constants.gearRatio) + ", ");
+        //clamp translation vector
+        double translationMagnitude = translationVector.magnitude();
+        if (translationMagnitude > 1) {
+            translationVector = Vector2D.scalarDivide(translationVector, translationMagnitude);
+        }
+        
+        //update target angle
+        Vector2D targetAngleVector = inputSystem.getTargetAngleVector();
+        double newTargetAngle = -targetAngleVector.theta() + 90;
+        if (newTargetAngle > 180) {
+            newTargetAngle -= 360;
+        }
+        if (targetAngleVector.magnitude() >= Constants.targetAngleMinMagnitude) {
+            // while (gyro.getYaw() - newTargetAngle > 180) {
+            //     newTargetAngle += 360;
+            // }
+            // while (gyro.getYaw() - newTargetAngle < -180) {
+            //     newTargetAngle -= 360;
+            // }
+            targetAngle = newTargetAngle;
         }
 
+        System.out.println(targetAngle + ", " + gyro.getYaw() + ", " + gyro.isMagnetometerCalibrated() + ", " + gyro.isConnected());
+
+        //get rotation power
+        double angleOffset = Math.abs(targetAngle - gyro.getYaw());
+        double rotationPower = (angleOffset - Constants.rotationZeroThreshold) / (Constants.rotationMaxThreshold - Constants.rotationZeroThreshold);
+        rotationPower = Math.min(Math.max(rotationPower, 0), 1);
+        if (targetAngle - gyro.getYaw() < 0) {
+            rotationPower *= -1;
+        }
+        if (angleOffset > 180) {
+            rotationPower *= -1;
+        }
+        
+        // Set clockwise or counterclockwise
+        rotationPower = inputSystem.getRotationPower();
+
+        //throttle all translation and rotation
+        double mainThrottle = inputSystem.getMainThrottle();
+        translationVector = Vector2D.scalarMultiply(translationVector, mainThrottle);
+        rotationPower *= mainThrottle;
+
+        //send request to drive subsystem
+        translationMagnitude = translationVector.magnitude();
+        driveSystem.setMovement(translationVector, rotationPower);
+
+        //angle motor callibration
         if (inputSystem.getCallibrateButton()) {
             driveSystem.callibrateAngles();
         }
 
-        //System.out.println();
-    }
-
-    @Override
-    public void disabledInit() {
-        driveSystem.disable();
-        motor4.set(ControlMode.PercentOutput, 0);
-        motor5.set(ControlMode.PercentOutput, 0);
-    }
-    
-    @Override
-    public void disabledPeriodic() {
-        // for (int i = 0; i < 4; i++) {
-        //     System.out.print(i + ": " + driveSystem.modules[i].angleEncoder.getAbsolutePosition() + " ");
-        // }
-
-        // System.out.println();
+        //gyro callibration
+        if (inputSystem.getResetGyroButton()) {
+            gyro.reset();
+        }
     }
 
     /*
+    @Override
+    public void autonomousInit() {
+        
+    }
+
+    @Override
+    public void autonomousPeriodic() {
+        
+    }
+
     @Override
     public void practiceInit() {
 
@@ -133,28 +180,15 @@ public class Robot extends TimedRobot {
     @override void practicePeriodic() {
         
     }
-    */
 
     @Override
     public void testInit() {
-        // driveSystem.enable();
-        // driveSystem.config();
-        // driveSystem.callibrateAngles();
-        // motor1.set(ControlMode.PercentOutput, .1);
-        // motor2.set(ControlMode.PercentOutput, .1);
         
-
     }
 
     @Override
     public void testPeriodic() {
-        // driveSystem.setMovement(new Vector2D(), inputSystem.getTranslationVector().y * inputSystem.getMainThrottle());
-        // int power = Math.min(-joystick2.getYAxis(), 1.0);
-        motor4.set(ControlMode.PercentOutput,-joystick2.getYAxis());
-        motor5.set(ControlMode.PercentOutput, joystick2.getYAxis());
-        System.out.println(-joystick2.getYAxis());
         
     }
-
-
+    */
 }

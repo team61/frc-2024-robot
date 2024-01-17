@@ -2,10 +2,10 @@ package lib.components;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Constants;
+import frc.robot.Vector2D;
 
 public class LogitechJoystick extends Joystick {
-
-    private final double JOYSTICK_BUFFER = 0.25;
 
     public LogitechJoystick(int port) {
         super(port);
@@ -24,42 +24,49 @@ public class LogitechJoystick extends Joystick {
     public JoystickButton btn_11 = new JoystickButton(this, 11);
     public JoystickButton btn_12 = new JoystickButton(this, 12);
 
-    public double getAxis(double value, double deadZone) {
-        if (Math.abs(value) > deadZone) {
-            return value;
-        } else {
-            return 0;
+    public Vector2D getVector() {
+        Vector2D vector = new Vector2D(getX(), -getY());
+
+        if (vector.x > Constants.joystickDeadzoneXMin && vector.x < Constants.joystickDeadzoneXMax
+        && vector.y > Constants.joystickDeadzoneYMin && vector.y < Constants.joystickDeadzoneYMax) {
+            vector = Vector2D.zero;
         }
-    }
-    public double getAxis(double value) {
-        if (Math.abs(value) > JOYSTICK_BUFFER) {
-            return value;
-        } else {
-            return 0;
-        }
+
+        return vector;
     }
 
-    public double getXAxis() {
-        return getAxis(getX());
-    }
+    // public double getXAxis() {
+    //     return getAxis(getX());
+    // }
 
-    public double getXAxis(double buffer) {
-        return getAxis(getX(), buffer);
-    }
+    // public double getXAxis(double buffer) {
+    //     return getAxis(getX(), buffer);
+    // }
 
-    public double getYAxis() {
-        return getAxis(getY());
-    }
+    // public double getYAxis() {
+    //     return getAxis(getY());
+    // }
 
-    public double getYAxis(double buffer) {
-        return getAxis(getY(), buffer);
-    }
+    // public double getYAxis(double buffer) {
+    //     return getAxis(getY(), buffer);
+    // }
 
-    public double getZAxis() {
-        return getAxis(getZ());
-    }
+    // public double getZAxis() {
+    //     return getAxis(getZ());
+    // }
 
-    public double getZAxis(double buffer) {
-        return getAxis(getZ(), buffer);
-    }
+    // public double getZAxis(double buffer) {
+    //     return getAxis(getZ(), buffer);
+    // }
+
+    // private double getAxis(double value, double deadZone) {
+    //     if (Math.abs(value) > deadZone) {
+    //         return value;
+    //     } else {
+    //         return 0;
+    //     }
+    // }
+    // private double getAxis(double value) {
+    //     return getAxis(value, Constants.joystickDeadzone);
+    // }
 }

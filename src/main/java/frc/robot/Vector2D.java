@@ -1,6 +1,9 @@
 package frc.robot;
 
 public class Vector2D {
+    public static Vector2D zero = new Vector2D();
+    public static Vector2D one = new Vector2D(1, 1);
+    
     public double x, y;
 
     public Vector2D(double x, double y) {
@@ -25,11 +28,24 @@ public class Vector2D {
         return new Vector2D(a.x / b, a.y / b);
     }
 
+    public static Vector2D rotateByDegrees(Vector2D vector, double angle) {
+        double magnitude = vector.magnitude();
+        double theta = vector.theta() + angle;
+        double rads = theta * Math.PI / 180;
+        double x = Math.cos(rads) * magnitude;
+        double y = Math.sin(rads) * magnitude;
+        return new Vector2D(x, y);
+    }
+
     public double magnitude() {
         return Math.sqrt(x * x + y * y);
     }
 
     public double theta() {
         return Math.atan2(y, x) / Math.PI * 180;
+    }
+
+    public String toString() {
+        return "(" + x + ", " + y + ")";
     }
 }

@@ -15,8 +15,18 @@ public class CommandTemplate extends CommandBase {
     }
 
     @Override
+    public void initialize() {
+        
+    }
+
+    @Override
     public void execute() {
-        //runs repeatedly until finished
+        
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        
     }
 
     @Override
