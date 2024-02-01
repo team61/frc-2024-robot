@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import frc.robot.Constants;
 import frc.robot.Vector2D;
+import frc.robot.subsystemHelpers.DriveModule;
 
 public class DriveSystem {
     private static DriveSystem system;
@@ -22,18 +23,6 @@ public class DriveSystem {
         }
 
         return system;
-    }
-
-    public void enable() {
-        for (DriveModule module : modules) {
-            module.enable();
-        }
-    }
-
-    public void disable() {
-        for (DriveModule module : modules) {
-            module.disable();
-        }
     }
 
     public void callibrateAngles() {

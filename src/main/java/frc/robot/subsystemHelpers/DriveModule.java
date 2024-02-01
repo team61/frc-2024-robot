@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystemHelpers;
 
 import lib.math.Conversions;
 
@@ -18,33 +18,18 @@ public class DriveModule {
     public CANCoder angleEncoder;
 
     private DriveModulePosition position;
-    private boolean enabled;
     private boolean inverted;
 
     public DriveModule(int driveMotorNumber, int angleMotorNumber, int angleEncoderNumber, DriveModulePosition position) {
         driveMotor = new TalonFX(driveMotorNumber);
-        angleMotor = new TalonFX(angleMotorNumber);
-        angleEncoder = new CANCoder(angleEncoderNumber);
-        this.position = position;
-        
-        disable();
-    }
-
-    public void enable() {
         driveMotor.setNeutralMode(NeutralMode.Brake);
+
+        angleMotor = new TalonFX(angleMotorNumber);
         angleMotor.setNeutralMode(NeutralMode.Brake);
 
-        enabled = true;
-    }
+        angleEncoder = new CANCoder(angleEncoderNumber);
 
-    public void disable() {
-        driveMotor.set(ControlMode.PercentOutput, 0);
-        angleMotor.set(ControlMode.PercentOutput, 0);
-        
-        driveMotor.setNeutralMode(NeutralMode.Coast);
-        angleMotor.setNeutralMode(NeutralMode.Coast);
-        
-        enabled = false;
+        this.position = position;
     }
 
     public void calibrateAngle() {

@@ -20,6 +20,10 @@ public class Vector2D {
         return new Vector2D(a.x + b.x, a.y + b.y);
     }
 
+    public static Vector2D subtract(Vector2D a, Vector2D b) {
+        return new Vector2D(a.x - b.x, a.y - b.y);
+    }
+
     public static Vector2D scalarMultiply(Vector2D a, double b) {
         return new Vector2D(a.x * b, a.y * b);
     }
@@ -37,8 +41,16 @@ public class Vector2D {
         return new Vector2D(x, y);
     }
 
+    public static Vector2D lerp(Vector2D a, Vector2D b, double t) {
+        return new Vector2D(Utils.lerp(a.x, b.x, t), Utils.lerp(a.y, b.y, t));
+    }
+
     public double magnitude() {
         return Math.sqrt(x * x + y * y);
+    }
+
+    public Vector2D normalized() {
+        return scalarDivide(this, magnitude());
     }
 
     public double theta() {
@@ -46,6 +58,6 @@ public class Vector2D {
     }
 
     public String toString() {
-        return "(" + x + ", " + y + ")";
+        return "(" + Utils.round(x) + ", " + Utils.round(y) + ")";
     }
 }
