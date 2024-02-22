@@ -6,32 +6,37 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
+import frc.robot.subsystems.LauncherSystem;
 
-public class CommandTemplate extends CommandBase {    
-    //properties
+public class ReadyLauncherCommand extends CommandBase {    
+    public static ReadyLauncherCommand speakerCommand = new ReadyLauncherCommand(Constants.launcherSpeakerPower);
+    
+    private LauncherSystem launcherSystem = LauncherSystem.get();
 
-    public CommandTemplate() {
-        //constructor
+    private double power;
+
+    public ReadyLauncherCommand(double power) {
+        this.power = power;
     }
 
     @Override
     public void initialize() {
-        //called once at beginning
+        launcherSystem.ready(power);
     }
 
     @Override
     public void execute() {
-        //called repeatedly during execution
+        
     }
 
     @Override
     public void end(boolean interrupted) {
-        //called once at end
+        
     }
 
     @Override
     public boolean isFinished() {
-        //called repeatedly. command stops if it ever returns true
         return true;
     }
 }

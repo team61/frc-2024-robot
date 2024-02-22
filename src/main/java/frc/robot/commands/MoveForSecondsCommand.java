@@ -17,7 +17,6 @@ import frc.robot.subsystems.DriveSystem;
 import frc.robot.subsystems.SwerveSystem;
 
 public class MoveForSecondsCommand extends CommandBase {    
-    private DriveSystem driveSystem = DriveSystem.get();
     private SwerveSystem swerveSystem = SwerveSystem.get();
     private AHRS gyro = new AHRS(Port.kMXP);
     
@@ -38,9 +37,6 @@ public class MoveForSecondsCommand extends CommandBase {
         startTime = Utils.getTime();
 
         swerveSystem.updateTranslationVector(translation, gyro.getYaw());
-        swerveSystem.apply(driveSystem, true);
-
-        swerveSystem.suppress();
     }
 
     @Override
@@ -51,13 +47,10 @@ public class MoveForSecondsCommand extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         swerveSystem.updateTranslationVector(Vector2D.zero, gyro.getYaw());
-        swerveSystem.apply(driveSystem, true);
-
-        swerveSystem.stopSuppressing();
     }
 
     @Override
     public boolean isFinished() {
-        return Utils.getTime() - startTime > duration;
+        return Utils.getTime() - startTime >= duration;
     }
 }

@@ -10,7 +10,7 @@ public class InputSystem {
 
     public LogitechJoystick[] joysticks;
 
-    private int throttlePreset;
+    //private int throttlePreset;
 
     private InputSystem() {
         joysticks = new LogitechJoystick[Constants.joystickNumbers.length];
@@ -19,7 +19,7 @@ public class InputSystem {
             joysticks[i] = new LogitechJoystick(Constants.joystickNumbers[i]);
         }
 
-        throttlePreset = Constants.defaultThrottlePreset;
+        //throttlePreset = Constants.defaultThrottlePreset;
     }
 
     public static InputSystem get() {
@@ -30,50 +30,54 @@ public class InputSystem {
         return system;
     }
 
+    //swerve system
+
     public Vector2D getTranslationVector() {
         return getJoystickVector(0);
     }
 
     public double getRotationPowerLinear() {
-        return joysticks[1].getZ();
+        return getJoystickVector(1).x;
     }
 
     public Vector2D getTargetAngleVector() {
         return joysticks[1].getVector();
     }
 
-    public void updateThrottle() {
-        if (joysticks[0].btn_12.getAsBoolean()) {
-            throttlePreset = 0;
-        }
-        else if (joysticks[0].btn_10.getAsBoolean()) {
-            throttlePreset = 1;
-        }
-        else if (joysticks[0].btn_8.getAsBoolean()) {
-            throttlePreset = 2;
-        }
-        else if (joysticks[0].btn_11.getAsBoolean()) {
-            throttlePreset = 3;
-        }
-        else if (joysticks[0].btn_9.getAsBoolean()) {
-            //throttlePreset = 4;
-        }
-        else if (joysticks[0].btn_7.getAsBoolean()) {
-            //throttlePreset = 5;
-        }
-    }
+    // public void updateThrottle() {
+    //     if (joysticks[0].btn_12.getAsBoolean()) {
+    //         throttlePreset = 0;
+    //     }
+    //     else if (joysticks[0].btn_10.getAsBoolean()) {
+    //         throttlePreset = 1;
+    //     }
+    //     else if (joysticks[0].btn_8.getAsBoolean()) {
+    //         throttlePreset = 2;
+    //     }
+    //     else if (joysticks[0].btn_11.getAsBoolean()) {
+    //         throttlePreset = 3;
+    //     }
+    //     else if (joysticks[0].btn_9.getAsBoolean()) {
+    //         //throttlePreset = 4;
+    //     }
+    //     else if (joysticks[0].btn_7.getAsBoolean()) {
+    //         //throttlePreset = 5;
+    //     }
+    // }
 
-    public double getTranslationThrottle() {
-        return Constants.throttlePresets[throttlePreset].translationFactor;
-    }
+    // public double getTranslationThrottle() {
+    //     return Constants.throttlePresets[throttlePreset].translationFactor;
+    // }
 
-    public double getRotationThrottle() {
-        return Constants.throttlePresets[throttlePreset].rotationFactor;
-    }
+    // public double getRotationThrottle() {
+    //     return Constants.throttlePresets[throttlePreset].rotationFactor;
+    // }
 
-    public boolean getLinearRotationMode() {
+    public boolean getForcedRotationMode() {
         return joysticks[1].btn_2.getAsBoolean();
     }
+
+    //arm system
 
     public double getElevatorPower() {
         return getJoystickVector(2).y;
@@ -84,36 +88,78 @@ public class InputSystem {
     }
 
     public boolean getHandPickupButton() {
-        return joysticks[3].btn_3.getAsBoolean();
+        return joysticks[3].getPOVDown();
     }
 
     public boolean getHandReleaseButton() {
-        return joysticks[3].btn_5.getAsBoolean();
+        return joysticks[3].getPOVUp();
     }
 
-    public boolean getCallibrateButton() {
-        return joysticks[0].btn_1.getAsBoolean();
+    public boolean getBalancerEngageButton() {
+        return joysticks[2].getPOVUp();
     }
 
-    public boolean getResetGyroButton() {
-        return joysticks[1].btn_1.getAsBoolean();
+    public boolean getBalancerDisengageButton() {
+        return joysticks[2].getPOVDown();
     }
+
+    //launcher
 
     public boolean getLauncherIntakeButton() {
-        return joysticks[2].btn_4.getAsBoolean();
+        return joysticks[1].getPOVDown();
     }
 
     public boolean getLauncherReadyButton() {
-        return joysticks[2].btn_3.getAsBoolean();
+        return joysticks[3].btn_2.getAsBoolean();
     }
 
     public boolean getLauncherFireButton() {
-        return joysticks[2].btn_5.getAsBoolean();
+        return joysticks[1].getPOVUp();
     }
 
-    public boolean getLauncherCancelButton() {
-        return joysticks[2].btn_6.getAsBoolean();
+    public boolean getLauncherStopButton() {
+        return joysticks[1].btn_3.getAsBoolean();
     }
+
+    //calibration
+
+    public boolean getCalibrateAngleMotorButton() {
+        return joysticks[0].btn_1.getAsBoolean();
+    }
+
+    public boolean getCalibrateGyroButton() {
+        return joysticks[1].btn_1.getAsBoolean();
+    }
+
+    //macros
+
+    public boolean getArmPickupMacroButton() {
+        return joysticks[3].btn_3.getAsBoolean();
+    }
+
+    public boolean getArmAmpMacroButton() {
+        return joysticks[3].btn_5.getAsBoolean();
+    }
+
+    public boolean getArmStageStartMacroButton() {
+        return joysticks[3].btn_4.getAsBoolean();
+    }
+
+    //auton modes
+
+    public boolean getLeftAutonModeButton() {
+        return joysticks[0].btn_12.getAsBoolean();
+    }
+
+    public boolean getCenterAutonModeButton() {
+        return joysticks[0].btn_10.getAsBoolean();
+    }
+
+    public boolean getRightAutonModeButton() {
+        return joysticks[0].btn_8.getAsBoolean();
+    }
+
+    //general
 
     private Vector2D getJoystickVector(int i) {
         return joysticks[i].getVector();

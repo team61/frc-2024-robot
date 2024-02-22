@@ -35,6 +35,26 @@ public class LogitechJoystick extends Joystick {
         return vector;
     }
 
+    public boolean getPOVUp() {
+        int pov = getPOV();
+        return pov == 315 || pov == 0 || pov == 45;
+    }
+
+    public boolean getPOVDown() {
+        int pov = getPOV();
+        return pov == 135 || pov == 180 || pov == 225;
+    }
+
+    public boolean getPOVLeft() {
+        int pov = getPOV();
+        return pov == 225 || pov == 270 || pov == 315;
+    }
+
+    public boolean getPOVRight() {
+        int pov = getPOV();
+        return pov == 45 || pov == 90 || pov == 135;
+    }
+
     // public double getXAxis() {
     //     return getAxis(getX());
     // }

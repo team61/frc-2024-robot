@@ -6,17 +6,19 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.subsystems.DriveSystem;
 
-public class CommandTemplate extends CommandBase {    
-    //properties
+public class CalibrateAndZeroAnglesCommand extends CommandBase {
+    private DriveSystem driveSystem = DriveSystem.get();
 
-    public CommandTemplate() {
+    public CalibrateAndZeroAnglesCommand() {
         //constructor
     }
 
     @Override
     public void initialize() {
-        //called once at beginning
+        driveSystem.calibrateAngles();
+        driveSystem.zero();
     }
 
     @Override
@@ -31,7 +33,6 @@ public class CommandTemplate extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        //called repeatedly. command stops if it ever returns true
         return true;
     }
 }

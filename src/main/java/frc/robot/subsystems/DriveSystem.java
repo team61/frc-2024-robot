@@ -25,7 +25,7 @@ public class DriveSystem {
         return system;
     }
 
-    public void callibrateAngles() {
+    public void calibrateAngles() {
         for (DriveModule module : modules) {
             module.calibrateAngle();
         }
@@ -34,6 +34,13 @@ public class DriveSystem {
     public void setMovement(Vector2D translationVector, double rotationPower) {
         for (DriveModule module : modules) {
             module.setMovement(translationVector, rotationPower);
+        }
+    }
+
+    public void zero() {
+        for (DriveModule module : modules) {
+            module.setPower(0);
+            module.setAngle(0);
         }
     }
 }

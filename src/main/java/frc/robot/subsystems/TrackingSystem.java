@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.sensors.WPI_Pigeon2;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.networktables.NetworkTable;
@@ -15,7 +16,8 @@ public class TrackingSystem {
 
     NetworkTable limelightTable;
     NetworkTableEntry limelightBotPose;
-    AHRS gyro;
+    public AHRS ahrs;
+    public WPI_Pigeon2 pigeon;
 
     Vector2D position;
     double yaw;
@@ -23,11 +25,12 @@ public class TrackingSystem {
     private TrackingSystem() {
         // limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
         // limelightBotPose = limelightTable.getEntry("botpose");
-        gyro = new AHRS(Port.kMXP);
+        ahrs = new AHRS(Port.kMXP);
+        pigeon = new WPI_Pigeon2(Constants.pigeonNumber);
         
         position = new Vector2D();
 
-        gyro.calibrate();
+        //ahrs.calibrate();
     }
 
     public static TrackingSystem get() {
@@ -59,10 +62,35 @@ public class TrackingSystem {
     public double getYaw() {
         //return yaw;
 
-        return gyro.getYaw();
+        //System.out.println(gyro.isConnected() + ", " + gyro.getYaw());
+
+        // if (!ahrs.isConnected()) {
+        //     System.out.println("Gyro disconnected!");
+        // }
+
+        // return ahrs.getYaw();
+
+        double yaw = pigeon.getYaw();
+
+        while (yaw > 180) {
+            yaw -= 360;
+        }
+        
+        while (yaw < -180) {
+            yaw += 360;
+        }
+
+        return -yaw;
     }
 
-    public void resetGyro() {
-        gyro.reset();
+    public void calibrateGyro(double angle) {
+        //gyro.reset();
+        //gyro.setAngleAdjustment(angle);
+
+        // ahrs.reset();
+        // ahrs.setAngleAdjustment(ahrs.getYaw() + angle);
+
+        pigeon.setYaw(-angle);
+        System.out.print("Calibrated");
     }
 }

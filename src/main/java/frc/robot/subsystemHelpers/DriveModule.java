@@ -5,7 +5,6 @@ import lib.math.Conversions;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 
@@ -33,23 +32,20 @@ public class DriveModule {
     }
 
     public void calibrateAngle() {
-        angleEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-        angleMotor.configIntegratedSensorAbsoluteRange(AbsoluteSensorRange.Unsigned_0_to_360);
-
         driveMotor.setInverted(Constants.driveMotorInverted[position.i] != inverted);
         angleMotor.setInverted(Constants.angleMotorInverted[position.i]);
         
         double angle = angleEncoder.getAbsolutePosition() - Constants.encoderAbsoluteOffsets[position.i] + (inverted ? 0 : 180);
         
         angleEncoder.setPosition(angle);
-        angleMotor.setSelectedSensorPosition(Conversions.degreesToFalcon(angle, Constants.gearRatio));
+        angleMotor.setSelectedSensorPosition(Conversions.degreesToFalcon(angle, Constants.angleMotorGearRatio));
     }
 
     public void invertAngle() {
         double angle = angleEncoder.getPosition() + 180;
         
         angleEncoder.setPosition(angle);
-        angleMotor.setSelectedSensorPosition(Conversions.degreesToFalcon(angle, Constants.gearRatio));
+        angleMotor.setSelectedSensorPosition(Conversions.degreesToFalcon(angle, Constants.angleMotorGearRatio));
 
         driveMotor.setInverted(!driveMotor.getInverted());
 
@@ -81,7 +77,7 @@ public class DriveModule {
         //     }
         // }
         
-        angleMotor.set(ControlMode.Position, Conversions.degreesToFalcon(adjustedAngle, Constants.gearRatio));
+        angleMotor.set(ControlMode.Position, Conversions.degreesToFalcon(adjustedAngle, Constants.angleMotorGearRatio));
     }
 
     public void setToVector(Vector2D vector) {
@@ -106,6 +102,6 @@ public class DriveModule {
     }
 
     public double getCalibratedAngle() {
-        return Conversions.falconToDegrees(angleMotor.getSelectedSensorPosition(), Constants.gearRatio);
+        return Conversions.falconToDegrees(angleMotor.getSelectedSensorPosition(), Constants.angleMotorGearRatio);
     }
 }

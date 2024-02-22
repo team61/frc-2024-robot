@@ -15,30 +15,22 @@ import frc.robot.subsystems.DriveSystem;
 import frc.robot.subsystems.SwerveSystem;
 
 public class TargetAngleCommand extends CommandBase {    
-    private DriveSystem driveSystem = DriveSystem.get();
     private SwerveSystem swerveSystem = SwerveSystem.get();
-    private AHRS gyro = new AHRS(Port.kMXP);
 
-    private Vector2D target;
-    private double duration;
+    private double target;
 
-    private double startTime;
-
-    public TargetAngleCommand(Vector2D target, double duration) {
+    public TargetAngleCommand(double target) {
         this.target = target;
-        this.duration = duration;
     }
 
     @Override
     public void initialize() {
-        startTime = Utils.getTime();
+        swerveSystem.forceTargetAngle(target);
     }
 
     @Override
     public void execute() {
-        swerveSystem.updateTargetAngle(target);
-        swerveSystem.updateRotationPowerTargetted(gyro.getYaw());
-        swerveSystem.apply(driveSystem, true);
+        
     }
 
     @Override
@@ -48,6 +40,6 @@ public class TargetAngleCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return Utils.getTime() - startTime > duration;
+        return true;
     }
 }

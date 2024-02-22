@@ -17,9 +17,7 @@ public class LauncherSystem {
     public DigitalInput limitSwitch;
 
     private LauncherStatus status;
-    private double fireTime;
-    private boolean bufferedIntake = false;
-    private double bufferedPower;
+    private double timestamp;
 
     private LauncherSystem() {
         upperLauncherMotor = new TalonFX(Constants.upperLauncherMotorNumber);
@@ -51,96 +49,72 @@ public class LauncherSystem {
         return system;
     }
 
+    public void update() {
+        if (status == LauncherStatus.Intake && !limitSwitch.get()) {
+            loaded();
+        }
+        else if (status == LauncherStatus.Firing && Utils.getTime() - timestamp >= Constants.launcherFireTime) {
+            setIdle();
+        }
+    }
+
     public void intake() {
-        if (status == LauncherStatus.Idle) {
-            upperLauncherMotor.set(ControlMode.PercentOutput, -Constants.launcherMotorIntakeFactor);
-            lowerLauncherMotor.set(ControlMode.PercentOutput, -Constants.launcherMotorIntakeFactor);
-    
-            leftFeedMotor.set(ControlMode.PercentOutput, -Constants.feedMotorIntakeFactor);
-            rightFeedMotor.set(ControlMode.PercentOutput, -Constants.feedMotorIntakeFactor);
+        if (status == LauncherStatus.Idle || status == LauncherStatus.Loaded) { //auto override while loaded
+            setLauncherMotors(-Constants.launcherMotorIntakeFactor);
+            setFeedMotors(-Constants.feedMotorIntakeFactor);
     
             status = LauncherStatus.Intake;
         }
-        else if (status == LauncherStatus.Firing) {
-            bufferedIntake = true;
+    }
+
+    public void loaded() {
+        if (status == LauncherStatus.Intake) {
+            overrideLoaded();
         }
     }
 
-    public void update() {
-        if (status == LauncherStatus.Intake && !limitSwitch.get()) {
-            upperLauncherMotor.set(ControlMode.PercentOutput, 0);
-            lowerLauncherMotor.set(ControlMode.PercentOutput, 0);
-        
-            leftFeedMotor.set(ControlMode.PercentOutput, 0);
-            rightFeedMotor.set(ControlMode.PercentOutput, 0);
+    public void overrideLoaded() {
+        setLauncherMotors(0);
+        setFeedMotors(0);
 
-            status = LauncherStatus.Loaded;
-
-            if (bufferedPower != 0) {
-                ready(bufferedPower);
-                bufferedPower = 0;
-            }
-        }
-        else
-        if (status == LauncherStatus.Firing && Utils.getTime() - fireTime >= Constants.launcherFireTime) {
-            upperLauncherMotor.set(ControlMode.PercentOutput, 0);
-            lowerLauncherMotor.set(ControlMode.PercentOutput, 0);
-            
-            leftFeedMotor.set(ControlMode.PercentOutput, 0);
-            rightFeedMotor.set(ControlMode.PercentOutput, 0);
-            
-            status = LauncherStatus.Idle;
-
-            if (bufferedIntake) {
-                intake();
-                bufferedIntake = false;
-            }
-        }
+        status = LauncherStatus.Loaded;
     }
 
     public void ready(double power) {
-        if (status == LauncherStatus.Loaded || status == LauncherStatus.Ready) {
-            upperLauncherMotor.set(ControlMode.PercentOutput, power);
-            lowerLauncherMotor.set(ControlMode.PercentOutput, power);
+        if (status == LauncherStatus.Loaded) { //add auto override while idle?
+            setLauncherMotors(power);
+            setFeedMotors(0);
 
             status = LauncherStatus.Ready;
-        }
-        else if (status == status.Intake) {
-            bufferedPower = power;
         }
     }
 
     public void fire() {
         if (status == LauncherStatus.Ready) {
-            leftFeedMotor.set(ControlMode.PercentOutput, Constants.feedMotorOuttakeFactor);
-            rightFeedMotor.set(ControlMode.PercentOutput, Constants.feedMotorOuttakeFactor);
+            setFeedMotors(Constants.feedMotorOuttakeFactor);
 
-            fireTime = Utils.getTime();
+            timestamp = Utils.getTime();
             
             status = LauncherStatus.Firing;
         }
     }
 
-    public void cancel() {
-        if (status == LauncherStatus.Ready) {
-            upperLauncherMotor.set(ControlMode.PercentOutput, 0);
-            lowerLauncherMotor.set(ControlMode.PercentOutput, 0);
-
-            status = LauncherStatus.Loaded;
-        }
-        else if (status == LauncherStatus.Intake) {
-            upperLauncherMotor.set(ControlMode.PercentOutput, 0);
-            lowerLauncherMotor.set(ControlMode.PercentOutput, 0);
+    public void setIdle() {
+        if (status == LauncherStatus.Firing || status == LauncherStatus.Intake) {
+            setLauncherMotors(0);
+            setFeedMotors(0);
             
-            leftFeedMotor.set(ControlMode.PercentOutput, 0);
-            rightFeedMotor.set(ControlMode.PercentOutput, 0);
-
-            status = LauncherStatus.Loaded;
-
-            if (bufferedPower != 0) {
-                ready(bufferedPower);
-                bufferedPower = 0;
-            }
+            status = LauncherStatus.Idle;
         }
+    }
+
+    private void setLauncherMotors(double power) {
+        upperLauncherMotor.set(ControlMode.PercentOutput, power);
+        lowerLauncherMotor.set(ControlMode.PercentOutput, power);
+    }
+
+    private void setFeedMotors(double power) {
+        leftFeedMotor.set(ControlMode.PercentOutput, power);
+        rightFeedMotor.set(ControlMode.PercentOutput, power);
     }
 }

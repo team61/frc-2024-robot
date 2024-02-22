@@ -9,8 +9,6 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
 import frc.robot.Utils;
