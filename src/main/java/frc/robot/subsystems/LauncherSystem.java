@@ -7,16 +7,19 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants;
 import frc.robot.Utils;
+import frc.robot.LEDStrategies.LEDStrategy;
 import frc.robot.enums.LauncherStatus;
 
 public class LauncherSystem {
     private static LauncherSystem system;
 
+    private LEDSystem ledSystem = LEDSystem.get();
+
     public TalonFX upperLauncherMotor, lowerLauncherMotor;
     public TalonFX leftFeedMotor, rightFeedMotor;
     public DigitalInput limitSwitch;
+    public LauncherStatus status;
 
-    private LauncherStatus status;
     private double timestamp;
 
     private LauncherSystem() {
@@ -59,17 +62,20 @@ public class LauncherSystem {
     }
 
     public void intake() {
-        if (status == LauncherStatus.Idle || status == LauncherStatus.Loaded) { //auto override while loaded
+        if (status == LauncherStatus.Idle || status == LauncherStatus.Loaded) {
             setLauncherMotors(-Constants.launcherMotorIntakeFactor);
             setFeedMotors(-Constants.feedMotorIntakeFactor);
     
             status = LauncherStatus.Intake;
+
+            ledSystem.strategies = Constants.launcherStrategies;
         }
     }
 
     public void loaded() {
         if (status == LauncherStatus.Intake) {
             overrideLoaded();
+            ledSystem.strategies = Constants.defaultStrategies;
         }
     }
 
@@ -100,10 +106,21 @@ public class LauncherSystem {
     }
 
     public void setIdle() {
-        if (status == LauncherStatus.Firing || status == LauncherStatus.Intake) {
-            setLauncherMotors(0);
-            setFeedMotors(0);
-            
+        setIdle(0);
+    }
+
+    public void setIdle(double overridePower) {
+        setLauncherMotors(overridePower * Constants.overrideLauncherMotorFactor);
+        setFeedMotors(overridePower * Constants.overrideFeedMotorFactor);
+
+        if (status == LauncherStatus.Intake) {
+            ledSystem.strategies = Constants.defaultStrategies;
+        }
+        
+        if (!limitSwitch.get()) {
+            status = LauncherStatus.Loaded;
+        }
+        else {
             status = LauncherStatus.Idle;
         }
     }

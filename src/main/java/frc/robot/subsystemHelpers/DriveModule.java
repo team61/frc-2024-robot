@@ -80,6 +80,10 @@ public class DriveModule {
         angleMotor.set(ControlMode.Position, Conversions.degreesToFalcon(adjustedAngle, Constants.angleMotorGearRatio));
     }
 
+    public void disableAngle() {
+        angleMotor.set(ControlMode.PercentOutput, 0);
+    }
+
     public void setToVector(Vector2D vector) {
         double magnitude = vector.magnitude();
 
@@ -94,7 +98,13 @@ public class DriveModule {
         Vector2D rotationVector = Vector2D.scalarMultiply(Constants.rotationVectors[position.i], rotationPower);
         Vector2D vector = Vector2D.add(translationVector, rotationVector);
 
-        setToVector(vector);
+        if (vector.magnitude() >= Constants.minDrivePower) {
+            setToVector(vector);
+        }
+        else {
+            setPower(0);
+            disableAngle();
+        }
     }
 
     public double getAngle() {

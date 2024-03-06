@@ -25,10 +25,22 @@ public class LimitedMotorWrapper extends TargettedMotorWrapper {
         limitSwitch = new DigitalInput(limitSwitchNumber);
     }
 
+    public void CalibrateManually() {
+        if (status == LimitedMotorCalibrationStatus.Calibrated) {
+            status = LimitedMotorCalibrationStatus.ManualCalibration;
+        }
+    }
+
+    public void CancelManualCalibration() {
+        if (status == LimitedMotorCalibrationStatus.ManualCalibration) {
+            status = LimitedMotorCalibrationStatus.Calibrated;
+        }
+    }
+
     @Override
     public void update() {
         if (!limitSwitch.get()) {
-            if (status == LimitedMotorCalibrationStatus.NotCalibrated) {
+            if (status == LimitedMotorCalibrationStatus.NotCalibrated || status == LimitedMotorCalibrationStatus.ManualCalibration) {
                 status = LimitedMotorCalibrationStatus.TouchedSwitch;
             }
 
@@ -40,6 +52,8 @@ public class LimitedMotorWrapper extends TargettedMotorWrapper {
                 if (stayBelowLimit) {
                     targetPower *= -1;
                 }
+
+                targetPosition = null;
             }
 
             if (targetPower > 0 == stayBelowLimit) {
@@ -50,16 +64,19 @@ public class LimitedMotorWrapper extends TargettedMotorWrapper {
                 power = 0;
             }
         }
-        else if (status == LimitedMotorCalibrationStatus.NotCalibrated) {
+        else if (status == LimitedMotorCalibrationStatus.NotCalibrated || status == LimitedMotorCalibrationStatus.ManualCalibration) {
             targetPower = calibrationTriggerPower;
             
             if (!stayBelowLimit) {
                 targetPower *= -1;
             }
+
+            targetPosition = null;
         }
         else if (status == LimitedMotorCalibrationStatus.TouchedSwitch) {
             status = LimitedMotorCalibrationStatus.Calibrated;
             targetPower = 0;
+            targetPosition = null;
         }
 
         super.update();

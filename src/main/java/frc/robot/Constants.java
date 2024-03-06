@@ -1,5 +1,10 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.util.Color;
+import frc.robot.LEDStrategies.BlinkDecorator;
+import frc.robot.LEDStrategies.LEDStrategy;
+import frc.robot.LEDStrategies.OscillatoryStrategy;
+import frc.robot.LEDStrategies.SolidColorStrategy;
 import frc.robot.enums.DriveModulePosition;
 import frc.robot.subsystemHelpers.ThrottlePreset;
 
@@ -17,7 +22,7 @@ public class Constants {
     public static final int upperLauncherMotorNumber = 5, lowerLauncherMotorNumber = 4;
     public static final int leftFeedMotorNumber = 11, rightFeedMotorNumber = 12;
 
-    public static final int launcherLimitSwitchNumber = 1;
+    public static final int launcherLimitSwitchNumber = 4;
     public static final int elevatorLimitSwitchNumber = 2;
     public static final int armLimitSwitchNumber = 3;
 
@@ -37,6 +42,8 @@ public class Constants {
     };
     public static final double[] encoderAbsoluteOffsets = new double[] {177.7, 185.8, 330.1, 111.8};
     public static final double angleMotorGearRatio = 150.0/7.0;
+
+    public static final double minDrivePower = 0.04;
 
     //swerve system
 
@@ -64,17 +71,17 @@ public class Constants {
     public static final boolean rightElevatorMotorInverted = false;
     public static final boolean armMotorInverted = false;
     public static final boolean handMotorInverted = true;
-    public static final boolean balancerMotorInverted = false;
+    //public static final boolean balancerMotorInverted = false;
 
-    public static final double elevatorFactor = 1.0;
+    public static final double elevatorFactor = 0.75;
     public static final double armMotorFactor = 0.8;
     public static final double handMotorFactor = 0.2;
-    public static final double balancerMotorFactor = 0.8;
+    //public static final double balancerMotorFactor = 0.8;
 
     public static final double elevatorLerpFactor = 1.0;
     public static final double armLerpFactor = 1.0;
     public static final double handLerpFactor = 1.0;
-    public static final double balancerLerpFactor = 0.5;
+    //public static final double balancerLerpFactor = 0.5;
 
     public static final double armGearRatio = 300.0;
     public static final double elevatorGearRatio = 4050;
@@ -86,17 +93,10 @@ public class Constants {
 
     //input system
 
-    // public static final ThrottlePreset[] throttlePresets = new ThrottlePreset[] { //remove eventually
-    //     new ThrottlePreset(0.05, 0.05),
-    //     new ThrottlePreset(0.2, 0.2),
-    //     new ThrottlePreset(0.8, 0.2),
-    //     new ThrottlePreset(0, 0)
-    // };
-    // public static int defaultThrottlePreset = 2;
-    public static final double joystickDeadzoneXMin = -0.01;
-    public static final double joystickDeadzoneXMax = 0.01;
-    public static final double joystickDeadzoneYMin = -0.2;
-    public static final double joystickDeadzoneYMax = 0.01;
+    public static final double joystickDeadzoneXMin = -0.02;
+    public static final double joystickDeadzoneXMax = 0.02;
+    public static final double joystickDeadzoneYMin = -0.3;
+    public static final double joystickDeadzoneYMax = 0.2;
     
     public static final double targetAngleMinJoystickMagnitude = 0.5;
 
@@ -106,13 +106,21 @@ public class Constants {
     public static final boolean leftFeedMotorInverted = false, rightFeedMotorInverted = true;
 
     public static final double launcherMotorIntakeFactor = 0.15;
-    public static final double feedMotorIntakeFactor = 0.1;
-    public static final double feedMotorOuttakeFactor = 0.1;
+    public static final double feedMotorIntakeFactor = 0.05;
+    public static final double feedMotorOuttakeFactor = 0.5;
     public static final double launcherFireTime = 1.0;
+
+    public static final double overrideLauncherMotorFactor = 0.1;
+    public static final double overrideFeedMotorFactor = 0.1;
 
     //tracking system
 
     public static final double trackingLerpFactor = 0.5;
+
+    //led system
+
+    public static final int ledPort = 1;
+    public static final int ledLength = 245;
 
     //auton and macros
 
@@ -125,7 +133,19 @@ public class Constants {
     public static final double armStageStartMacroArmTarget = 21;
     public static final double armStageStartMacroElevatorTarget = 27.5;
 
+    public static final double armHomeMacroArmTarget = 104;
+    public static final double armHomeMacroElevatorTarget = 0;
+
     public static final double launcherSpeakerPower = 0.35;
 
     public static final double[] autonStartAngles = new double[] {124, 0, -124};
+
+    //led strategies
+
+    public static final LEDStrategy[] defaultStrategies = new LEDStrategy[] { new SolidColorStrategy(35, 53, Color.kPurple), new SolidColorStrategy(71, 89, Color.kPurple)  };
+    public static final LEDStrategy[] disabledStrategies = new LEDStrategy[] { new SolidColorStrategy(0, Constants.ledLength, new Color(128, 0, 0)) };
+    public static final LEDStrategy[] autonStrategies = new LEDStrategy[] { new BlinkDecorator(new SolidColorStrategy(0, Constants.ledLength, new Color(128, 128, 0)), 1) };
+    public static final LEDStrategy[] pickupStrategies = new LEDStrategy[] { new SolidColorStrategy(0, Constants.ledLength, new Color(0, 0, 255)) };
+    public static final LEDStrategy[] launcherStrategies = new LEDStrategy[] { new SolidColorStrategy(0, Constants.ledLength, new Color(0, 255, 0)) };
+    public static final LEDStrategy[] spiritStrategies = new LEDStrategy[] { new OscillatoryStrategy(0, ledLength) };
 }

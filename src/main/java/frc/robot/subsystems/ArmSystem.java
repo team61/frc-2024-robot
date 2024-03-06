@@ -7,6 +7,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants;
 import frc.robot.Utils;
+import frc.robot.LEDStrategies.LEDStrategy;
 import frc.robot.enums.LimitedMotorCalibrationStatus;
 import frc.robot.subsystemHelpers.LimitedMotorWrapper;
 import frc.robot.subsystemHelpers.MotorWrapper;
@@ -15,15 +16,16 @@ import lib.math.Conversions;
 public class ArmSystem {
     private static ArmSystem system;
 
+    private LEDSystem ledSystem = LEDSystem.get();
+
     public DigitalInput armSwitch, elevatorSwitch;
 
     public LimitedMotorWrapper elevatorMotor;
     public LimitedMotorWrapper armMotor;
     public MotorWrapper handMotor;
-    public MotorWrapper balancerMotor;
+    //public MotorWrapper balancerMotor;
 
-    private double armPower = 0;
-    private double armTarget = 0;
+    private boolean stopped = false;
 
     private ArmSystem() {
         // armMotor = new TalonFX(Constants.armMotorNumber);
@@ -51,7 +53,7 @@ public class ArmSystem {
         armMotor.limitPosition = 103.5;
         armMotor.stayBelowLimit = true;
         armMotor.status = LimitedMotorCalibrationStatus.NotCalibrated;
-        armMotor.calibrationTriggerPower = 0.5;
+        armMotor.calibrationTriggerPower = 0.2;
         armMotor.calibrationUntriggerPower = 0.1;
 
         elevatorMotor = new LimitedMotorWrapper(new int[] { Constants.leftElevatorMotorNumber, Constants.rightElevatorMotorNumber },
@@ -65,13 +67,13 @@ public class ArmSystem {
         elevatorMotor.limitPosition = 0;
         elevatorMotor.stayBelowLimit = false;
         elevatorMotor.status = LimitedMotorCalibrationStatus.NotCalibrated;
-        elevatorMotor.calibrationTriggerPower = 0.5;
+        elevatorMotor.calibrationTriggerPower = 0.2;
         elevatorMotor.calibrationUntriggerPower = 0.1;
 
-        balancerMotor = new MotorWrapper(new int[] {Constants.balancerMotorNumber},
-            new boolean[] {Constants.balancerMotorInverted});
-        balancerMotor.factor = Constants.balancerMotorFactor;
-        balancerMotor.lerpFactor = Constants.balancerLerpFactor;
+        // balancerMotor = new MotorWrapper(new int[] {Constants.balancerMotorNumber},
+        //     new boolean[] {Constants.balancerMotorInverted});
+        // balancerMotor.factor = Constants.balancerMotorFactor;
+        // balancerMotor.lerpFactor = Constants.balancerLerpFactor;
     }
 
     public static ArmSystem get() {
@@ -84,6 +86,11 @@ public class ArmSystem {
 
     public void pickup() {
         handMotor.targetPower = 1;
+
+        if (stopped) {
+            ledSystem.strategies = Constants.pickupStrategies;
+            stopped = false;
+        }
     }
 
     public void release() {
@@ -92,19 +99,24 @@ public class ArmSystem {
 
     public void stopHand() {
         handMotor.targetPower = 0;
+
+        if (!stopped) {
+            ledSystem.strategies = Constants.defaultStrategies;
+            stopped = true;
+        }
     }
 
-    public void engageBalancer() {
-        balancerMotor.targetPower = 1;
-    }
+    // public void engageBalancer() {
+    //     balancerMotor.targetPower = 1;
+    // }
 
-    public void disengageBalancer() {
-        balancerMotor.targetPower = -1;
-    }
+    // public void disengageBalancer() {
+    //     balancerMotor.targetPower = -1;
+    // }
 
-    public void stopBalancer() {
-        balancerMotor.targetPower = 0;
-    }
+    // public void stopBalancer() {
+    //     balancerMotor.targetPower = 0;
+    // }
 
     public void setArmPowerLinear(double power) {
         armMotor.targetPower = power;
@@ -137,7 +149,7 @@ public class ArmSystem {
         elevatorMotor.update();
         armMotor.update();
         handMotor.update();
-        balancerMotor.update();
+        //balancerMotor.update();
     }
 
     public void calibrateArmAngle() {

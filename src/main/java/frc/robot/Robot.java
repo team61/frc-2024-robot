@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -51,17 +53,24 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import frc.robot.LEDStrategies.BlinkDecorator;
+import frc.robot.LEDStrategies.LEDStrategy;
+import frc.robot.LEDStrategies.OscillatoryStrategy;
+import frc.robot.LEDStrategies.SolidColorStrategy;
 import frc.robot.commands.CalibrateAndZeroAnglesCommand;
+import frc.robot.commands.FireLauncherCommand;
 import frc.robot.commands.MoveForSecondsCommand;
 import frc.robot.commands.ReadyLauncherCommand;
 import frc.robot.commands.TargetArmSystemCommand;
 import frc.robot.enums.AutonMode;
+import frc.robot.enums.LimitedMotorCalibrationStatus;
 import frc.robot.commands.TargetAngleCommand;
 import frc.robot.subsystemHelpers.DriveModule;
 import frc.robot.subsystems.ArmSystem;
 import frc.robot.subsystems.AudioSystem;
 import frc.robot.subsystems.DriveSystem;
 import frc.robot.subsystems.InputSystem;
+import frc.robot.subsystems.LEDSystem;
 import frc.robot.subsystems.LauncherSystem;
 import frc.robot.subsystems.SwerveSystem;
 import frc.robot.subsystems.TrackingSystem;
@@ -73,6 +82,7 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.VideoSource;
 
 public class Robot extends TimedRobot {
     DriveSystem driveSystem = DriveSystem.get();
@@ -81,6 +91,7 @@ public class Robot extends TimedRobot {
     ArmSystem armSystem = ArmSystem.get();
     TrackingSystem trackingSystem = TrackingSystem.get();
     LauncherSystem launcherSystem = LauncherSystem.get();
+    LEDSystem ledSystem = LEDSystem.get();
     CommandScheduler scheduler = CommandScheduler.getInstance();
     
     double targetAngle = 0;
@@ -89,42 +100,69 @@ public class Robot extends TimedRobot {
     double autonTimestamp;
     ArrayList<Double> autonCommandTimes;
     ArrayList<Command> autonCommands;
+    boolean spiritLeds;
+    boolean overrideLauncher;
 
     WPI_Pigeon2 gyro = new WPI_Pigeon2(15);
+    
+    int hue = 0;
 
     @Override
     public void robotInit() {
-        CameraServer.startAutomaticCapture();
+        CameraServer.startAutomaticCapture(0);
+        CameraServer.startAutomaticCapture(1);
 
         driveSystem.calibrateAngles();
         driveSystem.zero();
         trackingSystem.calibrateGyro(0);
-
+        
         scheduler.enable();
     }
-
+    
     @Override
-    public void robotPeriodic() {}
-
+    public void robotPeriodic() {
+        if (inputSystem.getLeftAutonModeButton() && autonMode != AutonMode.Left) {
+            autonMode = AutonMode.Left;
+            System.out.println("Set to left auton position!");
+        }
+        else if (inputSystem.getCenterAutonModeButton() && autonMode != AutonMode.Center) {
+            autonMode = AutonMode.Center;
+            System.out.println("Set to central auton position!");
+        }
+        else if (inputSystem.getRightAutonModeButton() && autonMode != AutonMode.Right) {
+            autonMode = AutonMode.Right;
+            System.out.println("Set to right auton position!");
+        }
+        
+        ledSystem.update();
+    }
+    
     @Override
-    public void disabledInit() {}
+    public void disabledInit() {
+        ledSystem.strategies = Constants.disabledStrategies;
+    }
     
     @Override
     public void disabledPeriodic() {
-        if (inputSystem.getLeftAutonModeButton()) {
-            autonMode = AutonMode.Left;
+        //spirit leds
+        if (inputSystem.getSpiritLedButton() && !spiritLeds) {
+            ledSystem.strategies = new LEDStrategy[] { new OscillatoryStrategy(0, Constants.ledLength) };
+            spiritLeds = true;
+            System.out.println("Hello world!");
         }
-        else if (inputSystem.getCenterAutonModeButton()) {
-            autonMode = AutonMode.Center;
-        }
-        else if (inputSystem.getRightAutonModeButton()) {
-            autonMode = AutonMode.Right;
+        else if (!inputSystem.getSpiritLedButton() && spiritLeds) {
+            ledSystem.strategies = Constants.disabledStrategies;
+            spiritLeds = false;
         }
     }
 
     @Override
     public void teleopInit() {
         swerveSystem.forceTargetAngle(trackingSystem.getYaw());
+
+        ledSystem.strategies = Constants.defaultStrategies;
+
+        spiritLeds = false;
     }
 
     @Override
@@ -144,7 +182,7 @@ public class Robot extends TimedRobot {
             swerveSystem.updateRotationPower(inputSystem.getRotationPowerLinear());
         }
 
-        //swerveSystem.update(trackingSystem.getYaw());
+        swerveSystem.update(trackingSystem.getYaw());
 
         //arm system
 
@@ -169,6 +207,10 @@ public class Robot extends TimedRobot {
             armSystem.elevatorMotor.targetPosition = Constants.armAmpMacroElevatorTarget;
             armSystem.armMotor.targetPosition = Constants.armAmpMacroArmTarget;
         }
+        else if (inputSystem.getArmHomeMacroButton()) {
+            armSystem.elevatorMotor.targetPosition = Constants.armHomeMacroElevatorTarget;
+            armSystem.armMotor.targetPosition = Constants.armHomeMacroArmTarget;
+        }
         else if (inputSystem.getArmStageStartMacroButton()) {
             armSystem.elevatorMotor.targetPosition = Constants.armStageStartMacroElevatorTarget;
             armSystem.armMotor.targetPosition = Constants.armStageStartMacroArmTarget;
@@ -178,16 +220,16 @@ public class Robot extends TimedRobot {
             armSystem.armMotor.targetPosition = null;
         }
 
-        if (inputSystem.getBalancerEngageButton()) {
-            armSystem.engageBalancer();
+        // if (inputSystem.getBalancerEngageButton()) {
+        //     armSystem.engageBalancer();
             
-        }
-        else if (inputSystem.getBalancerDisengageButton()) {
-            armSystem.disengageBalancer();
-        }
-        else {
-            armSystem.stopBalancer();
-        }
+        // }
+        // else if (inputSystem.getBalancerDisengageButton()) {
+        //     armSystem.disengageBalancer();
+        // }
+        // else {
+        //     armSystem.stopBalancer();
+        // }
 
         armSystem.update();
 
@@ -211,6 +253,15 @@ public class Robot extends TimedRobot {
             launcherSystem.setIdle();
         }
 
+        if (inputSystem.getLauncherOverrideModeButton()) {
+            launcherSystem.setIdle(inputSystem.getLauncherOverridePower());
+            overrideLauncher = true;
+        }
+        else if (overrideLauncher) {
+            launcherSystem.setIdle();
+            overrideLauncher = false;
+        }
+
         //angle motor callibration
         if (inputSystem.getCalibrateAngleMotorButton()) {
             driveSystem.calibrateAngles();
@@ -229,9 +280,26 @@ public class Robot extends TimedRobot {
             calibratingRotation = false;
         }
 
+        //arm system calibration
+        if (inputSystem.getCancelCalibrateArmSystemButton()) {
+            armSystem.elevatorMotor.CancelManualCalibration();
+            armSystem.armMotor.CancelManualCalibration();
+        }
+        else if (inputSystem.getCalibrateArmSystemButton()) {
+            armSystem.elevatorMotor.CalibrateManually();
+            armSystem.armMotor.CalibrateManually();
+        }
 
-
-        //System.out.println(armSystem.elevatorMotor.getPosition() + ", " + armSystem.armMotor.getPosition());
+        //spirit leds
+        if (inputSystem.getSpiritLedButton() && !spiritLeds) {
+            ledSystem.strategies = new LEDStrategy[] { new OscillatoryStrategy(0, Constants.ledLength) };
+            spiritLeds = true;
+            System.out.println("Hello world!");
+        }
+        else if (!inputSystem.getSpiritLedButton() && spiritLeds) {
+            ledSystem.strategies = Constants.defaultStrategies;
+            spiritLeds = false;
+        }
     }
 
     @Override
@@ -263,11 +331,18 @@ public class Robot extends TimedRobot {
         autonCommandTimes.add(1d);
         autonCommands.add(new TargetAngleCommand(angle));
 
+        autonCommandTimes.add(2d);
+        autonCommands.add(ReadyLauncherCommand.readySpeakerCommand);
+
         autonCommandTimes.add(3d);
-        autonCommands.add(ReadyLauncherCommand.speakerCommand);
+        autonCommands.add(new FireLauncherCommand());
 
         autonCommandTimes.add(5d);
         autonCommands.add(new MoveForSecondsCommand(new Vector2D(0, 0.6), 1));
+
+
+
+        ledSystem.strategies = Constants.autonStrategies;
     }
 
     @Override

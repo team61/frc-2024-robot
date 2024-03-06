@@ -9,20 +9,12 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.LauncherSystem;
 
-public class ReadyLauncherCommand extends CommandBase {    
-    public static ReadyLauncherCommand readySpeakerCommand = new ReadyLauncherCommand(Constants.launcherSpeakerPower);
-    
+public class FireLauncherCommand extends CommandBase {    
     private LauncherSystem launcherSystem = LauncherSystem.get();
-
-    private double power;
-
-    public ReadyLauncherCommand(double power) {
-        this.power = power;
-    }
 
     @Override
     public void initialize() {
-        launcherSystem.ready(power);
+        launcherSystem.fire();
     }
 
     @Override
