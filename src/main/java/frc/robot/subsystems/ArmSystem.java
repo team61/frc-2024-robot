@@ -7,8 +7,8 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants;
 import frc.robot.Utils;
-import frc.robot.LEDStrategies.LEDStrategy;
 import frc.robot.enums.LimitedMotorCalibrationStatus;
+import frc.robot.subsystemHelpers.ArmPreset;
 import frc.robot.subsystemHelpers.LimitedMotorWrapper;
 import frc.robot.subsystemHelpers.MotorWrapper;
 import lib.math.Conversions;
@@ -16,26 +16,16 @@ import lib.math.Conversions;
 public class ArmSystem {
     private static ArmSystem system;
 
-    private LEDSystem ledSystem = LEDSystem.get();
-
     public DigitalInput armSwitch, elevatorSwitch;
 
     public LimitedMotorWrapper elevatorMotor;
     public LimitedMotorWrapper armMotor;
     public MotorWrapper handMotor;
-    //public MotorWrapper balancerMotor;
 
     private boolean stopped = false;
+    private Double overridenArmTarget = null;
 
     private ArmSystem() {
-        // armMotor = new TalonFX(Constants.armMotorNumber);
-        // armMotor.setNeutralMode(NeutralMode.Brake);
-        // armMotor.setInverted(Constants.armMotorInverted);
-        
-        // handMotor = new TalonFX(Constants.handMotorNumber);
-        // handMotor.setNeutralMode(NeutralMode.Coast);
-        // handMotor.setInverted(Constants.handMotorInverted);
-
         handMotor = new MotorWrapper(new int[] {Constants.handMotorNumber},
             new boolean[] {Constants.handMotorInverted});
         handMotor.factor = Constants.handMotorFactor;
@@ -69,11 +59,6 @@ public class ArmSystem {
         elevatorMotor.status = LimitedMotorCalibrationStatus.NotCalibrated;
         elevatorMotor.calibrationTriggerPower = 0.2;
         elevatorMotor.calibrationUntriggerPower = 0.1;
-
-        // balancerMotor = new MotorWrapper(new int[] {Constants.balancerMotorNumber},
-        //     new boolean[] {Constants.balancerMotorInverted});
-        // balancerMotor.factor = Constants.balancerMotorFactor;
-        // balancerMotor.lerpFactor = Constants.balancerLerpFactor;
     }
 
     public static ArmSystem get() {
@@ -88,7 +73,6 @@ public class ArmSystem {
         handMotor.targetPower = 1;
 
         if (stopped) {
-            ledSystem.strategies = Constants.pickupStrategies;
             stopped = false;
         }
     }
@@ -101,55 +85,82 @@ public class ArmSystem {
         handMotor.targetPower = 0;
 
         if (!stopped) {
-            ledSystem.strategies = Constants.defaultStrategies;
             stopped = true;
         }
     }
-
-    // public void engageBalancer() {
-    //     balancerMotor.targetPower = 1;
-    // }
-
-    // public void disengageBalancer() {
-    //     balancerMotor.targetPower = -1;
-    // }
-
-    // public void stopBalancer() {
-    //     balancerMotor.targetPower = 0;
-    // }
 
     public void setArmPowerLinear(double power) {
         armMotor.targetPower = power;
     }
 
-    // public void setArmTarget(double angle) {
-    //     armTarget = angle;
-    // }
-
-    // public void seekArmTarget() {
-    //     double angleOffset = Math.abs(armTarget - getArmAngle());
-    //     double newArmPower = (angleOffset - Constants.armZeroThreshold) / (Constants.armMaxThreshold - Constants.armZeroThreshold);
-    //     newArmPower = Math.min(Math.max(newArmPower, 0), 1);
-    //     if (armTarget - getArmAngle() < 0) {
-    //         newArmPower *= -1;
-    //     }
-
-    //     armPower = Utils.lerp(armPower, newArmPower, Constants.armLerpFactor);
-    // }
-
     public void setElevatorPower(double power) {
         elevatorMotor.targetPower = power;
     }
 
-    // public double getArmAngle() {
-    //     return armMotor.getPosition();
-    // }
+    public void setElevatorTarget(Double target) {
+        elevatorMotor.targetPosition = target;
+    }
+
+    public void setArmTarget(Double target) {
+        if (overridenArmTarget != null) {
+            overridenArmTarget = target;
+        }
+        else {
+            armMotor.targetPosition = target;
+        }
+    }
+
+    public void overrideArmTarget(Double target) {
+        if (target == null) {
+            if (overridenArmTarget != null) {
+                setArmTarget(overridenArmTarget);
+                overridenArmTarget = null;
+            }
+        }
+        else {
+            if (overridenArmTarget == null) {
+                overridenArmTarget = armMotor.targetPosition;
+            }
+
+            setArmTarget(target);
+        }
+    }
+
+    public void setPreset(ArmPreset preset) {
+        if (preset == null) {
+            setElevatorTarget(null);
+            setArmTarget(null);
+        }
+        else {
+            setElevatorTarget(preset.elevatorTarget);
+            setArmTarget(preset.armTarget);
+        }
+    }
 
     public void update() {
+        Double armPosition = armMotor.targetPosition;
+
+        if (overridenArmTarget != null) {
+            armPosition = overridenArmTarget;
+        }
+        else if (armPosition == null) {
+            armPosition = armMotor.getPosition() + armMotor.targetPower * 5;
+        }
+        
+        if (elevatorMotor.getPosition() + Constants.armLength * Math.sin(armPosition * Math.PI / 180) > Constants.maxElevatorHeight) {
+            overrideArmTarget(Math.asin((Constants.maxElevatorHeight - elevatorMotor.getPosition()) / Constants.armLength) * 180 / Math.PI);
+            System.out.println(Math.asin((Constants.maxElevatorHeight - elevatorMotor.getPosition()) / Constants.armLength) * 180 / Math.PI);
+        }
+        else {
+            overrideArmTarget(null);
+        }
+        
         elevatorMotor.update();
         armMotor.update();
         handMotor.update();
         //balancerMotor.update();
+
+        //System.out.println("e: " + elevatorMotor.getPosition() + ", a: " + armMotor.getPosition() + ", h: " + elevatorMotor.getPosition() + Constants.armLength * Math.cos(armMotor.getPosition() * Math.PI / 180));
     }
 
     public void calibrateArmAngle() {

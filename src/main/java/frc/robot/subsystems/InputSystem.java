@@ -65,7 +65,7 @@ public class InputSystem {
     }
 
     public boolean getHandReleaseButton() {
-        return joysticks[3].getPOVUp();
+        return joysticks[3].getPOVUp() || joysticks[0].getPOVUp();
     }
 
     // public boolean getBalancerEngageButton() {
@@ -122,40 +122,52 @@ public class InputSystem {
 
     //macros
 
-    public boolean getArmPickupMacroButton() {
+    public boolean getPickupPresetButton() {
         return joysticks[3].btn_3.getAsBoolean();
     }
 
-    public boolean getArmAmpMacroButton() {
+    public boolean getAmpPresetButton() {
         return joysticks[3].btn_5.getAsBoolean();
     }
 
-    public boolean getArmHomeMacroButton() {
+    public boolean getHomePresetButton() {
         return joysticks[3].btn_4.getAsBoolean();
     }
 
-    public boolean getArmStageStartMacroButton() {
+    public boolean getStageStartPresetButton() {
         return joysticks[3].btn_6.getAsBoolean();
+    }
+
+    public boolean getElevatorOnlyPresetModeButton() {
+        return joysticks[2].btn_4.getAsBoolean();
     }
 
     //auton modes
 
     public boolean getLeftAutonModeButton() {
-        return joysticks[2].btn_12.getAsBoolean();
+        return joysticks[2].btn_12.getAsBoolean() || joysticks[3].btn_12.getAsBoolean();
     }
 
     public boolean getCenterAutonModeButton() {
-        return joysticks[2].btn_10.getAsBoolean();
+        return joysticks[2].btn_10.getAsBoolean() || joysticks[3].btn_10.getAsBoolean();
     }
 
     public boolean getRightAutonModeButton() {
-        return joysticks[2].btn_8.getAsBoolean();
+        return joysticks[2].btn_8.getAsBoolean() || joysticks[3].btn_8.getAsBoolean();
     }
 
-    //bvt leds
+    //leds
 
     public boolean getSpiritLedButton() {
         return joysticks[0].getThrottle() < -0.9 && joysticks[1].getThrottle() < -0.9 && joysticks[2].getThrottle() < -0.9 && joysticks[3].getThrottle() < -0.9;
+    }
+
+    public boolean getLauncherLedButton() {
+        return joysticks[2].getThrottle() < -0.9;
+    }
+
+    public boolean getAmpLedButton() {
+        return joysticks[3].getThrottle() < -0.9;
     }
 
     //general

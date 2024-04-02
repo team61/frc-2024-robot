@@ -9,6 +9,7 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -45,6 +46,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
+import com.ctre.phoenix.music.Orchestra;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
@@ -67,7 +69,6 @@ import frc.robot.enums.LimitedMotorCalibrationStatus;
 import frc.robot.commands.TargetAngleCommand;
 import frc.robot.subsystemHelpers.DriveModule;
 import frc.robot.subsystems.ArmSystem;
-import frc.robot.subsystems.AudioSystem;
 import frc.robot.subsystems.DriveSystem;
 import frc.robot.subsystems.InputSystem;
 import frc.robot.subsystems.LEDSystem;
@@ -78,6 +79,7 @@ import frc.robot.subsystems.TrackingSystem;
 import com.kauailabs.navx.frc.AHRS;
 
 import java.lang.Math;
+
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -100,7 +102,6 @@ public class Robot extends TimedRobot {
     double autonTimestamp;
     ArrayList<Double> autonCommandTimes;
     ArrayList<Command> autonCommands;
-    boolean spiritLeds;
     boolean overrideLauncher;
 
     WPI_Pigeon2 gyro = new WPI_Pigeon2(15);
@@ -121,6 +122,7 @@ public class Robot extends TimedRobot {
     
     @Override
     public void robotPeriodic() {
+        //auton selection
         if (inputSystem.getLeftAutonModeButton() && autonMode != AutonMode.Left) {
             autonMode = AutonMode.Left;
             System.out.println("Set to left auton position!");
@@ -134,6 +136,7 @@ public class Robot extends TimedRobot {
             System.out.println("Set to right auton position!");
         }
         
+        //leds
         ledSystem.update();
     }
     
@@ -144,25 +147,21 @@ public class Robot extends TimedRobot {
     
     @Override
     public void disabledPeriodic() {
-        //spirit leds
-        if (inputSystem.getSpiritLedButton() && !spiritLeds) {
-            ledSystem.strategies = new LEDStrategy[] { new OscillatoryStrategy(0, Constants.ledLength) };
-            spiritLeds = true;
-            System.out.println("Hello world!");
+        //leds
+        if (inputSystem.getSpiritLedButton()) {
+            ledSystem.strategies = Constants.spiritStrategies;
         }
-        else if (!inputSystem.getSpiritLedButton() && spiritLeds) {
+        else if (!inputSystem.getSpiritLedButton()) {
             ledSystem.strategies = Constants.disabledStrategies;
-            spiritLeds = false;
         }
     }
 
     @Override
     public void teleopInit() {
+        driveSystem.calibrateAngles();
+        driveSystem.zero();
+        
         swerveSystem.forceTargetAngle(trackingSystem.getYaw());
-
-        ledSystem.strategies = Constants.defaultStrategies;
-
-        spiritLeds = false;
     }
 
     @Override
@@ -175,7 +174,7 @@ public class Robot extends TimedRobot {
         
         swerveSystem.updateTranslationVector(inputSystem.getTranslationVector(), trackingSystem.getYaw());
 
-        if (inputSystem.getForcedRotationMode()) {
+        if (inputSystem.getForcedRotationMode()) { //forced rotation mode is disabled in inputsystem
             swerveSystem.forceRotationPower(inputSystem.getRotationPowerLinear());
         }
         else {
@@ -199,37 +198,25 @@ public class Robot extends TimedRobot {
         armSystem.setElevatorPower(inputSystem.getElevatorPower());
         armSystem.setArmPowerLinear(inputSystem.getArmPower());
 
-        if (inputSystem.getArmPickupMacroButton()) {
-            armSystem.elevatorMotor.targetPosition = Constants.armPickupMacroElevatorTarget;
-            armSystem.armMotor.targetPosition = Constants.armPickupMacroArmTarget;
+        if (inputSystem.getPickupPresetButton()) {
+            armSystem.setPreset(Constants.pickupPreset);
         }
-        else if (inputSystem.getArmAmpMacroButton()) {
-            armSystem.elevatorMotor.targetPosition = Constants.armAmpMacroElevatorTarget;
-            armSystem.armMotor.targetPosition = Constants.armAmpMacroArmTarget;
+        else if (inputSystem.getAmpPresetButton()) {
+            armSystem.setPreset(Constants.ampPreset);
         }
-        else if (inputSystem.getArmHomeMacroButton()) {
-            armSystem.elevatorMotor.targetPosition = Constants.armHomeMacroElevatorTarget;
-            armSystem.armMotor.targetPosition = Constants.armHomeMacroArmTarget;
+        else if (inputSystem.getHomePresetButton()) {
+            armSystem.setPreset(Constants.homePreset);
         }
-        else if (inputSystem.getArmStageStartMacroButton()) {
-            armSystem.elevatorMotor.targetPosition = Constants.armStageStartMacroElevatorTarget;
-            armSystem.armMotor.targetPosition = Constants.armStageStartMacroArmTarget;
+        else if (inputSystem.getStageStartPresetButton()) {
+            armSystem.setPreset(Constants.stageStartPreset);
         }
         else {
-            armSystem.elevatorMotor.targetPosition = null;
-            armSystem.armMotor.targetPosition = null;
+            armSystem.setPreset(null);
         }
 
-        // if (inputSystem.getBalancerEngageButton()) {
-        //     armSystem.engageBalancer();
-            
-        // }
-        // else if (inputSystem.getBalancerDisengageButton()) {
-        //     armSystem.disengageBalancer();
-        // }
-        // else {
-        //     armSystem.stopBalancer();
-        // }
+        if (inputSystem.getElevatorOnlyPresetModeButton()) {
+            armSystem.armMotor.targetPosition = null;
+        }
 
         armSystem.update();
 
@@ -290,35 +277,39 @@ public class Robot extends TimedRobot {
             armSystem.armMotor.CalibrateManually();
         }
 
-        //spirit leds
-        if (inputSystem.getSpiritLedButton() && !spiritLeds) {
-            ledSystem.strategies = new LEDStrategy[] { new OscillatoryStrategy(0, Constants.ledLength) };
-            spiritLeds = true;
-            System.out.println("Hello world!");
+        //leds
+        if (inputSystem.getSpiritLedButton()) {
+            ledSystem.strategies = Constants.spiritStrategies;
         }
-        else if (!inputSystem.getSpiritLedButton() && spiritLeds) {
+        else if (inputSystem.getLauncherLedButton() == inputSystem.getAmpLedButton()) {
             ledSystem.strategies = Constants.defaultStrategies;
-            spiritLeds = false;
+        }
+        else if (inputSystem.getLauncherLedButton()) {
+            ledSystem.strategies = Constants.launcherStrategies;
+        }
+        else if (inputSystem.getAmpLedButton()) {
+            ledSystem.strategies = Constants.ampStrategies;
         }
     }
 
     @Override
     public void autonomousInit() {
+        //general auton setup
         autonTimestamp = Utils.getTime();
 
         autonCommandTimes = new ArrayList<Double>();
         autonCommands = new ArrayList<Command>();
 
+        ledSystem.strategies = Constants.autonStrategies;
 
-
+        //specific auton setup for 2024
         double angle = Constants.autonStartAngles[autonMode.i];
 
         launcherSystem.overrideLoaded();
         trackingSystem.calibrateGyro(angle);
         swerveSystem.forceTargetAngle(null);
 
-
-
+        //queueing auton commands
         autonCommandTimes.add(0.2d);
         autonCommands.add(new CalibrateAndZeroAnglesCommand());
 
@@ -339,10 +330,6 @@ public class Robot extends TimedRobot {
 
         autonCommandTimes.add(5d);
         autonCommands.add(new MoveForSecondsCommand(new Vector2D(0, 0.6), 1));
-
-
-
-        ledSystem.strategies = Constants.autonStrategies;
     }
 
     @Override
